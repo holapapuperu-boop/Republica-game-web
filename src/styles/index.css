@@ -1,0 +1,83 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Estilos base globales */
+@layer base {
+  *, *::before, *::after {
+    box-sizing: border-box;
+  }
+
+  html, body, #root {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+  }
+
+  body {
+    @apply bg-surface-900 text-text-primary font-sans;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Scrollbar personalizada — oscura y discreta */
+  ::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+  }
+  ::-webkit-scrollbar-track {
+    @apply bg-surface-800;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply bg-surface-500 rounded;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-text-muted;
+  }
+
+  /* Selección de texto */
+  ::selection {
+    @apply bg-accent/30 text-text-primary;
+  }
+}
+
+/* Componentes reutilizables de UI */
+@layer components {
+  .btn-primary {
+    @apply px-3 py-1.5 bg-accent hover:bg-accent-hover text-white
+           font-medium rounded transition-colors duration-150
+           disabled:opacity-40 disabled:cursor-not-allowed;
+  }
+
+  .btn-secondary {
+    @apply px-3 py-1.5 border border-surface-500 hover:border-accent/60
+           text-text-secondary hover:text-text-primary
+           font-medium rounded transition-colors duration-150
+           disabled:opacity-40 disabled:cursor-not-allowed;
+  }
+
+  .btn-danger {
+    @apply px-3 py-1.5 border border-danger/50 hover:border-danger
+           text-danger/80 hover:text-danger
+           font-medium rounded transition-colors duration-150
+           disabled:opacity-40 disabled:cursor-not-allowed;
+  }
+
+  .form-input {
+    @apply w-full bg-surface-700 border border-surface-500
+           focus:border-accent/70 focus:outline-none
+           text-text-primary text-sm rounded px-3 py-2
+           placeholder:text-text-muted
+           transition-colors duration-150;
+  }
+
+  /* Panel base para tarjetas de contenido */
+  .panel {
+    @apply bg-surface-700 border border-surface-500 rounded p-3;
+  }
+
+  /* Etiqueta de categoría */
+  .badge {
+    @apply text-xxs px-1.5 py-0.5 rounded font-medium;
+  }
+}

@@ -1,0 +1,2086 @@
+This file is a merged representation of the entire codebase, combined into a single document by Repomix.
+
+<file_summary>
+This section contains a summary of this file.
+
+<purpose>
+This file contains a packed representation of the entire repository's contents.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+</purpose>
+
+<file_format>
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files (if enabled)
+5. Multiple file entries, each consisting of:
+  - File path as an attribute
+  - Full contents of the file
+</file_format>
+
+<usage_guidelines>
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+</usage_guidelines>
+
+<notes>
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Files are sorted by Git change count (files with more changes are at the bottom)
+</notes>
+
+</file_summary>
+
+<directory_structure>
+src/
+  types/
+    gameTypes.ts
+    uiTypes.ts
+  App.tsx
+  main.tsx
+.gitignore
+index.html
+package.json
+postcss.config.js
+README_PLANIFICACION_DEL_PROYECTO.md
+README_REPUBLICA (1).md
+tailwind.config.js
+tsconfig.json
+tsconfig.node.json
+vite.config.ts
+</directory_structure>
+
+<files>
+This section contains the contents of the repository's files.
+
+<file path="src/types/gameTypes.ts">
+/**
+ * REPÚBLICA — Tipos de datos centrales del juego
+ *
+ * Este archivo define las estructuras de datos principales que el motor,
+ * el estado (store) y la interfaz comparten. NUNCA duplicar estas definiciones
+ * en otros archivos; importarlas siempre desde aquí.
+ */
+
+// ---------------------------------------------------------------------------
+// FECHA Y TIEMPO
+// ---------------------------------------------------------------------------
+
+/** Mes del año (1 = enero, 12 = diciembre) */
+export type Mes = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12;
+
+/** Fecha del juego expresada como año y mes (sin horas ni minutos) */
+export interface FechaJuego {
+  anio: number;
+  mes: Mes;
+}
+
+// ---------------------------------------------------------------------------
+// REGIMEN Y ETAPA POLITICA
+// ---------------------------------------------------------------------------
+
+export type RegimeniPolítico =
+  | 'democracia'
+  | 'autoritarismo'
+  | 'dictadura'
+  | 'gobierno_transitorio'
+  | 'crisis_institucional';
+
+export type EtapaPartida =
+  | 'organización'   // El jugador construye su partido, sin ser gobierno
+  | 'campaña'        // Período de campaña electoral activo
+  | 'elecciones'     // Proceso electoral en curso
+  | 'oposición'      // El partido perdió; existe fuera del gobierno
+  | 'gobierno';      // El partido ganó la presidencia
+
+// ---------------------------------------------------------------------------
+// IDEOLOGIA
+// ---------------------------------------------------------------------------
+
+export type EjeEconomico =
+  | 'estatismo'
+  | 'socialdemocrata'
+  | 'centroeconomico'
+  | 'liberal'
+  | 'ultraliberal';
+
+export type EjeSocial =
+  | 'ultraconservador'
+  | 'conservador'
+  | 'centrista'
+  | 'progresista'
+  | 'ultraprogresista';
+
+export interface Ideologia {
+  ejeEconomico: EjeEconomico;
+  ejeSocial: EjeSocial;
+  /** Descripción breve: "Centro-izquierda", "Nacionalista conservador", etc. */
+  etiqueta: string;
+}
+
+// ---------------------------------------------------------------------------
+// PARTIDO POLITICO
+// ---------------------------------------------------------------------------
+
+export interface Partido {
+  id: string;
+  nombre: string;
+  siglas: string;
+  colorPrincipal: string;    // Hex: '#e63946'
+  colorSecundario: string;   // Hex: '#1d3557'
+  lema: string;
+  ideologia: Ideologia;
+  esJugador: boolean;        // true = partido controlado por el jugador
+
+  // ---- Atributos (todos 0–100 salvo recursos) ----
+  popularidad: number;       // Reconocimiento público general
+  organizacion: number;      // Capacidad organizativa y estructura interna
+  credibilidad: number;      // Confianza ciudadana
+  comunicacion: number;      // Capacidad mediática y de campaña
+  experienciaElectoral: number;
+
+  // ---- Recursos ----
+  fondos: number;            // Dólares (USD) disponibles
+  afiliados: number;         // Número de militantes activos
+
+  // ---- Estadísticas acumuladas ----
+  accionesEjecutadas: number;
+  turnosDesdeFundacion: number;
+}
+
+// ---------------------------------------------------------------------------
+// RECURSOS DEL JUGADOR
+// ---------------------------------------------------------------------------
+
+/** Puntos de Acción disponibles en el turno actual */
+export interface RecursosJugador {
+  puntosDeAccion: number;    // PA disponibles en este turno (ej.: 3 por mes)
+  puntosDeAccionMaximos: number;
+}
+
+// ---------------------------------------------------------------------------
+// EVENTO DE JUEGO
+// ---------------------------------------------------------------------------
+
+export type CategoriaEvento =
+  | 'politico'
+  | 'economico'
+  | 'social'
+  | 'internacional'
+  | 'accion_jugador'
+  | 'sistema';
+
+export interface EventoJuego {
+  id: string;
+  fecha: FechaJuego;
+  titulo: string;
+  descripcion: string;
+  categoria: CategoriaEvento;
+  /** true = inventado por el motor de simulación; false = histórico/dato real */
+  esFicticio: boolean;
+}
+
+// ---------------------------------------------------------------------------
+// ESTADO GLOBAL DE LA PARTIDA
+// ---------------------------------------------------------------------------
+
+export interface EstadoPartida {
+  /** Versión del esquema de guardado — para migraciones futuras */
+  saveVersion: string;
+  /** ID único de esta partida */
+  partidaId: string;
+  /** Nombre que el jugador asigna a su partida */
+  nombrePartida: string;
+
+  // ---- Tiempo ----
+  fechaActual: FechaJuego;
+  turnoActual: number;       // Número del turno (empieza en 1)
+
+  // ---- Estado político nacional ----
+  regimen: RegimeniPolítico;
+  etapa: EtapaPartida;
+
+  // ---- Partidos ----
+  partidos: Partido[];
+  /** ID del partido controlado por el jugador */
+  partidoJugadorId: string | null;
+
+  // ---- Recursos del turno ----
+  recursos: RecursosJugador;
+
+  // ---- Historial de eventos ----
+  eventos: EventoJuego[];
+
+  // ---- Metadatos ----
+  fechaCreacion: string;     // ISO 8601
+  fechaUltimoGuardado: string;
+}
+
+// ---------------------------------------------------------------------------
+// RESULTADO DEL AVANCE DE TURNO
+// ---------------------------------------------------------------------------
+
+/** El motor devuelve este objeto al procesar un turno */
+export interface ResultadoTurno {
+  nuevoEstado: EstadoPartida;
+  eventosGenerados: EventoJuego[];
+  mensajeResumen: string;
+}
+</file>
+
+<file path="src/types/uiTypes.ts">
+/**
+ * Tipos de UI: Vistas disponibles en la barra de navegación lateral.
+ * Separados de gameTypes.ts para mantener los tipos de UI aislados
+ * de los tipos del motor de simulación.
+ */
+
+export type VistaActiva =
+  | 'situacion'
+  | 'politica'
+  | 'asamblea'
+  | 'territorio'
+  | 'gobierno'
+  | 'economia'
+  | 'sociedad'
+  | 'inteligencia'
+  | 'geopolitica'
+  | 'sistema';
+</file>
+
+<file path="src/App.tsx">
+/**
+ * REPÚBLICA — App principal
+ * Enruta entre el menú principal y el juego activo.
+ */
+
+import React, { useState } from 'react';
+import { useGameStore } from './store/gameStore';
+import { MainMenu } from './views/MainMenu';
+import { TopBar } from './components/layout/TopBar';
+import { SideNav } from './components/layout/SideNav';
+import { SituacionView } from './views/SituacionView';
+import { PoliticaView } from './views/PoliticaView';
+import { SistemaView } from './views/SistemaView';
+import type { VistaActiva } from './types/uiTypes';
+
+export default function App() {
+  const partida = useGameStore((s) => s.partida);
+  const guardarManual = useGameStore((s) => s.guardarManual);
+  const error = useGameStore((s) => s.error);
+  const limpiarError = useGameStore((s) => s.limpiarError);
+  const [vista, setVista] = useState<VistaActiva>('situacion');
+
+  // Sin partida activa → mostrar menú principal
+  if (!partida) {
+    return <MainMenu />;
+  }
+
+  return (
+    <div className="h-screen flex flex-col bg-surface-900 text-text-primary overflow-hidden">
+      {/* Barra superior */}
+      <TopBar onGuardar={guardarManual} />
+
+      {/* Error global */}
+      {error && (
+        <div className="bg-danger/10 border-b border-danger/30 px-4 py-2 flex justify-between items-center">
+          <span className="text-danger text-xs">{error}</span>
+          <button
+            onClick={limpiarError}
+            className="text-danger/60 hover:text-danger text-xs ml-4"
+          >
+            ✕
+          </button>
+        </div>
+      )}
+
+      {/* Cuerpo principal */}
+      <div className="flex flex-1 overflow-hidden">
+        <SideNav vistaActual={vista} onCambiarVista={setVista} />
+
+        {/* Área de contenido */}
+        <main className="flex-1 overflow-hidden bg-surface-900">
+          {vista === 'situacion' && <SituacionView />}
+          {vista === 'politica' && <PoliticaView />}
+          {vista === 'sistema' && <SistemaView />}
+          {/* Resto de vistas se implementarán en fases siguientes */}
+          {!['situacion', 'politica', 'sistema'].includes(vista) && (
+            <div className="flex items-center justify-center h-full">
+              <div className="text-center">
+                <p className="text-text-muted text-sm">
+                  Esta sección se implementará en una fase próxima.
+                </p>
+                <button
+                  onClick={() => setVista('situacion')}
+                  className="mt-3 text-accent text-xs hover:underline"
+                >
+                  Volver a Situación
+                </button>
+              </div>
+            </div>
+          )}
+        </main>
+      </div>
+    </div>
+  );
+}
+</file>
+
+<file path="src/main.tsx">
+import React from 'react'
+import ReactDOM from 'react-dom/client'
+import App from './App.tsx'
+import './styles/index.css'
+
+ReactDOM.createRoot(document.getElementById('root')!).render(
+  <React.StrictMode>
+    <App />
+  </React.StrictMode>,
+)
+</file>
+
+<file path=".gitignore">
+# Dependencias
+node_modules/
+.pnp
+.pnp.js
+
+# Build
+dist/
+dist-ssr/
+*.local
+
+# Editor y sistema
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+Thumbs.db
+
+# Variables de entorno (no deben subirse a git)
+.env
+.env.local
+.env.*.local
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Vitest
+coverage/
+
+# Typescript
+*.tsbuildinfo
+</file>
+
+<file path="index.html">
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>REPÚBLICA — Simulador Político de El Salvador</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
+</file>
+
+<file path="package.json">
+{
+  "name": "republica-game-web",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "eslint src --ext ts,tsx"
+  },
+  "dependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "zustand": "^4.5.5",
+    "dexie": "^4.0.9",
+    "dexie-react-hooks": "^1.1.7",
+    "clsx": "^2.1.1"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "@vitejs/plugin-react": "^4.3.3",
+    "typescript": "^5.6.3",
+    "vite": "^6.0.3",
+    "vitest": "^2.1.6",
+    "@vitest/ui": "^2.1.6",
+    "jsdom": "^25.0.1",
+    "@testing-library/react": "^16.0.1",
+    "@testing-library/jest-dom": "^6.6.3",
+    "tailwindcss": "^3.4.15",
+    "autoprefixer": "^10.4.20",
+    "postcss": "^8.4.47"
+  }
+}
+</file>
+
+<file path="postcss.config.js">
+export default {
+  plugins: {
+    tailwindcss: {},
+    autoprefixer: {},
+  },
+}
+</file>
+
+<file path="README_PLANIFICACION_DEL_PROYECTO.md">
+# REPÚBLICA — Planificación y Arquitectura Técnica del Proyecto
+
+**Documento:** Planificación y Hoja de Ruta de Desarrollo  
+**Fecha de creación:** Noviembre 2026  
+**Estado:** Propuesta formal aprobada para inicio de Fase 0  
+**Referencia Principal:** [README_REPUBLICA (1).md](./README_REPUBLICA%20(1).md)
+
+---
+
+## 1. Diagnóstico del Entorno y Estado Inicial
+
+* **Ubicación del proyecto:** `Republica game web`
+* **Herramientas del sistema verificadas:**
+  * **Node.js:** `v26.13.0`
+  * **npm:** `11.20.0`
+  * **Git:** `2.56.0`
+* **Archivos existentes al inicio:**
+  * `README_REPUBLICA (1).md`: Especificación funcional y de diseño maestra consolidada (versión 1.3, 1.330 líneas).
+* **Condición de partida:** No existe código previo ni librerías instaladas. Se parte desde cimientos limpios, garantizando una base moderna, estricta y modular.
+
+---
+
+## 2. Visión y Alcance del Simulador
+
+**REPÚBLICA** es un simulador político, institucional y geopolítico profundo centrado inicialmente en **El Salvador**, diseñado como aplicación web para ejecutarse de forma privada y local en PC.
+
+### Principios Fundamentales del Diseño:
+1. **Separación Estricta:**
+   * **Interfaz (UI):** Presenta datos e interactúa con el usuario mediante un diseño oscuro, profesional y sobrio.
+   * **Motor de Simulación (Engine):** Código TypeScript puro con fórmulas matemáticas deterministas y reproducibles.
+   * **Estado de Juego (Store):** Almacén central de variables de la partida.
+   * **Persistencia:** Almacenamiento local mediante base de datos del navegador (IndexedDB).
+2. **Cero "Efecto Maqueta":** Ningún botón, tarjeta de acción o indicador existirá de forma cosmética; cada elemento visual debe conectarse a mecánicas que alteren variables reales del juego.
+3. **Reproducibilidad y Neutralidad:** Los cálculos electorales, legislativos y económicos no dependen de IA generativa; se calculan mediante algoritmos auditables y con pruebas automatizadas.
+4. **Fidelidad al Marco Institucional Salvadoreño:**
+   * Asamblea Legislativa unicameral (60 diputados para el período actual, comisiones, dictámenes, votaciones con mayorías calificadas y simples, quórum).
+   * Organización territorial actualizada a 2024: 14 departamentos y 44 municipios (con distritos).
+   * Distinción real entre **influencia partidaria**, **apoyo/intención de voto** y **control institucional de alcaldías**.
+
+---
+
+## 3. Pila Tecnológica Seleccionada y Justificación
+
+| Tecnología | Rol en el Proyecto | Justificación Técnica (Explicación para Aprendizaje) |
+| :--- | :--- | :--- |
+| **Vite** | Entorno de desarrollo y empaquetador | Inicia el servidor local en milisegundos y refleja cambios en pantalla casi al instante (*Hot Module Replacement*), agilizando el flujo de trabajo. |
+| **React** | Biblioteca de interfaz de usuario | Permite modularizar la interfaz en componentes reutilizables (tarjetas de acción, fichas de diputados, indicadores de recursos). |
+| **TypeScript (Modo Estricto)** | Lenguaje de programación | Añade tipado estático obligatorio sobre JavaScript. Detecta incoherencias y errores en tiempo de escritura antes de ejecutar el código, indispensable para un simulador con cientos de variables numéricas e institucionales. |
+| **Tailwind CSS** | Motor de estilos y diseño | Facilita construir una estética oscura, elegante y minimalista tipo juego de gran estrategia profesional (`#0a0e14`, bordes finos, acentos de color institucional) sin generar desorden en hojas de estilo externas. |
+| **Zustand** | Gestión del estado global | Gestiona la "memoria viva" del juego (recursos, fecha, relaciones, partidos). Es mucho más ligero, transparente y fácil de aprender que Redux, permitiendo desacoplar la lógica del motor de los componentes de React. |
+| **IndexedDB (con Dexie.js)** | Base de datos local en el navegador | A diferencia de `localStorage` (limitado a 5MB y síncrono), IndexedDB permite almacenar múltiples partidas complejas, historiales por turno y árboles de eventos de forma asíncrona y exportable a archivos `.json`. |
+| **SVG Interactivo** | Motor del mapa nacional | Permite renderizar los 14 departamentos y 44 municipios salvadoreños de forma vectorial, nítida, personalizable por colores partidarios y **100% funcional sin conexión a internet**. |
+| **Vitest** | Pruebas unitarias automatizadas | Permite escribir tests que verifiquen que las fórmulas electorales, mayorías legislativas y balances económicos arrojen siempre el resultado correcto antes de conectarlos a la pantalla. |
+
+---
+
+## 4. Arquitectura Modular y Estructura de Carpetas
+
+Siguiendo la sección 26 del documento maestro, el proyecto se organizará en una arquitectura limpia y desacoplada:
+
+```text
+republica-game-web/
+├── docs/                      # Documentación viva, manuales y registro de datos
+│   ├── README_REPUBLICA.md    # Especificación funcional maestra
+│   ├── README_PLANIFICACION_DEL_PROYECTO.md # Este documento de planificación
+│   ├── ARQUITECTURA.md        # Decisiones de diseño de software y diagramas
+│   └── FUENTES_DATOS.md       # Registro formal de fuentes (TSE, BCR, etc.)
+├── public/
+│   ├── data/                  # GeoJSON / SVG del mapa salvadoreño
+│   └── assets/                # Iconos, escudos, emblemas de partidos
+├── src/
+│   ├── engine/                # MOTOR DEL JUEGO (Lógica pura TypeScript, sin React)
+│   │   ├── core/              # Avance de turnos mensuales, calendario, reloj
+│   │   ├── formulas/          # Matemáticas electorales (D'Hondt, cocientes) y económicas
+│   │   └── rules/             # Reglas constitucionales, quórum, mayorías de la Asamblea
+│   ├── systems/               # MÓDULOS DE JUEGO (Sistemas independientes y extensibles)
+│   │   ├── parties/           # Partidos políticos, dirigentes, afiliados, ideología
+│   │   ├── actions/           # Catálogo y resolución de tarjetas de acción
+│   │   ├── territorial/       # 14 departamentos, 44 municipios, influencia vs. apoyo
+│   │   ├── elections/         # Elecciones presidenciales, legislativas y municipales
+│   │   ├── legislature/       # Asamblea Legislativa, 60 diputados, comisiones, leyes
+│   │   ├── government/        # Presidencia, gabinete de ministros, decretos
+│   │   ├── economy/           # Presupuesto nacional, impuestos, deuda
+│   │   └── events/            # Generación de noticias, crisis y acontecimientos
+│   ├── store/                 # ALMACÉN DE ESTADO (Zustand)
+│   │   ├── gameStore.ts       # Estado global y acciones principales
+│   │   └── selectors.ts       # Consultas optimizadas para la interfaz
+│   ├── persistence/           # GUARDADO Y CARGA (IndexedDB y exportación/importación)
+│   ├── components/            # COMPONENTES VISUALES
+│   │   ├── layout/            # Barra superior (recursos, fecha), menú lateral
+│   │   ├── cards/             # Tarjetas interactivas de acciones
+│   │   ├── map/               # Componente del mapa interactivo SVG
+│   │   └── ui/                # Botones, modales, barras, insignias
+│   ├── views/                 # PANTALLAS PRINCIPALES DEL JUEGO
+│   │   ├── OverviewView.tsx   # Situación general y mapa
+│   │   ├── PoliticsView.tsx   # Partidos, acciones y militancia
+│   │   ├── AssemblyView.tsx   # Asamblea Legislativa y proyectos de ley
+│   │   ├── TerritorialView.tsx# Vista detallada de territorios
+│   │   └── SystemView.tsx     # Guardar, cargar, configuración y sandbox
+│   └── tests/                 # PRUEBAS AUTOMATIZADAS (Vitest)
+│       ├── engine.test.ts
+│       ├── elections.test.ts
+│       └── legislature.test.ts
+├── package.json
+├── tsconfig.json
+├── tailwind.config.js
+└── vite.config.ts
+```
+
+---
+
+## 5. Hoja de Ruta de Desarrollo en Fases
+
+### Fase 0 — Cimientos Técnicos y Configuración (Incremento Inmediato)
+* Inicialización de la aplicación con Vite + React + TypeScript en modo estricto.
+* Configuración de Tailwind CSS con paleta temática oscura (`dark theme` sobrio).
+* Estructuración de directorios y configuración de Vitest para pruebas automáticas.
+* Creación de la primera prueba automatizada base para validar el entorno.
+
+### Fase 1 — Base Funcional (Core Loop y Persistencia)
+* Definición de tipos de datos fundamentales (`GameState`, `Turn`, `Party`, `Resource`).
+* Motor de turnos mensual (`advanceTurn`): procesa el paso del tiempo y genera registro de eventos.
+* Sistema de persistencia con IndexedDB: nueva partida, guardar partida, cargar partida, exportar e importar en archivo `.json`.
+* Marco de navegación principal: barra superior con fecha, recursos y estado nacional; menú lateral para cambiar de vista.
+
+### Fase 2 — Sistema Político y Tarjetas de Acción
+* Creación y personalización de partidos (nombre, sigla, logo, colores, ideología).
+* Atributos de partido: popularidad, organización, recursos económicos, afiliados.
+* Mecánica de **Tarjetas de Acción**: catálogo de acciones (campaña, organización, recaudación) con costos, requisitos y efectos reales en el estado.
+
+### Fase 3 — Territorio Salvadoreño
+* Integración del mapa vectorial interactivo de El Salvador (14 departamentos y 44 municipios).
+* Fichas territoriales con población, electores, nivel de influencia y partido gobernante local.
+* Competencia territorial entre facciones y despliegue de sedes/acciones locales.
+
+### Fase 4 — Elecciones y Asamblea Legislativa (Pilar Central)
+* Calendario electoral y cálculo matemático verificable de resultados.
+* Simulación de la Asamblea Legislativa unicameral (60 diputados con disciplina partidaria y posicionamiento).
+* Proceso legislativo completo: presentación de proyectos, comisiones, votación en el pleno, quórum, mayorías diferenciadas, sanción o veto presidencial.
+
+### Fase 5 — Gobierno y Administración del Estado
+* Módulo de presidencia, ministerios y gabinete.
+* Controles y pesos institucionales entre el Ejecutivo y el Legislativo.
+* Presupuesto nacional con balance contable real (ingresos, gastos, deuda).
+
+### Fase 6 a 10 — Economía Profunda, Geopolítica, Rutas Alternativas y Pulido
+* Indicadores macroeconómicos (PIB, inflación, recaudación).
+* Rutas no democráticas, crisis institucionales y estados de excepción narrativos.
+* Proyección a mapa geopolítico internacional, diplomacia y conflictos estratégicos por turnos.
+* Balance final, optimización y compatibilidad de partidas guardadas.
+
+---
+
+## 6. Riesgos Técnicos Identificados y Medidas Preventivas
+
+1. **Riesgo de "Efecto Maqueta":**
+   * *Mitigación:* Cada acción o botón en pantalla debe pasar obligatoriamente por una función pura del motor (`engine/`) que verifique requisitos, descuente costos y actualice el estado. Si no hay recursos suficientes, la acción no se ejecuta.
+2. **Complejidad del Marco Territorial 2024:**
+   * *Mitigación:* Estructurar los datos geográficos en un formato jerárquico claro (`Departamento -> Municipio (44) -> Distritos`) respaldado por datos oficiales y fuentes verificables.
+3. **Pérdida de Compatibilidad en Partidas Guardadas:**
+   * *Mitigación:* Cada guardado llevará un número de versión de esquema (`saveVersion: 1.0.0`) y un sistema de migraciones que actualice partidas antiguas sin corromper los datos.
+4. **Acoplamiento de Código:**
+   * *Mitigación:* Mantener el motor (`src/engine/`) completamente aislado de React y HTML, permitiendo probar toda la lógica del juego de forma independiente mediante tests de Vitest.
+
+---
+
+## 7. Criterios de Aceptación para el Inicio del Proyecto
+
+* El proyecto debe compilar sin advertencias en modo estricto de TypeScript.
+* Todas las pruebas automatizadas deben ejecutarse y aprobarse exitosamente.
+* La interfaz debe responder de forma fluida y mantener la coherencia visual oscura establecida.
+* Toda nueva funcionalidad debe quedar documentada en este archivo o en la documentación técnica complementaria.
+</file>
+
+<file path="README_REPUBLICA (1).md">
+# REPÚBLICA
+
+## Simulador político, institucional y geopolítico de El Salvador
+
+**Documento maestro / README para asistentes de IA**\
+**Versión:** 1.3 --- Especificación consolidada\
+**Estado:** Diseño aprobado; pendiente de implementación\
+**Idioma del proyecto:** Español\
+**Plataforma inicial:** PC, navegador web\
+**Uso previsto:** Proyecto privado y personal\
+**Género:** Simulación política, estrategia territorial, gestión estatal
+y gran estrategia geopolítica
+
+------------------------------------------------------------------------
+
+# 0. INSTRUCCIONES PARA LA IA QUE RECIBA ESTE DOCUMENTO
+
+Este archivo es la fuente principal de requisitos de REPÚBLICA. Léelo
+completo antes de proponer cambios o escribir código.
+
+Tu función es ayudar a diseñar, construir, probar y mantener un
+simulador político profundo, modular y funcional. No conviertas el
+proyecto en una simple maqueta visual ni intentes implementar todos los
+sistemas de una sola vez.
+
+## Reglas obligatorias de trabajo
+
+1.  Trata este README como la especificación funcional de referencia.
+2.  Antes de programar, inspecciona la estructura existente del proyecto
+    y explica qué archivos y sistemas ya existen.
+3.  No reemplaces ni elimines código funcional sin una razón técnica
+    clara y autorización.
+4.  No dupliques sistemas, estados, componentes ni reglas.
+5.  Mantén separadas la interfaz, los datos, las reglas y el motor de
+    simulación.
+6.  Implementa por módulos pequeños y verificables.
+7.  Cada función visible debe funcionar realmente; no basta con dibujar
+    botones o paneles.
+8.  Añade pruebas para cálculos, turnos, elecciones, votaciones,
+    guardado y carga.
+9.  Mantén TypeScript estricto si el proyecto utiliza TypeScript.
+10. Actualiza este README o los documentos técnicos relacionados cuando
+    cambie el diseño.
+11. No inventes datos históricos ni presentes acontecimientos ficticios
+    como hechos reales.
+12. Registra fuente, fecha, unidad y escenario de cada conjunto de datos
+    reales.
+13. No uses IA generativa para decidir directamente resultados
+    matemáticos fundamentales. Los cálculos importantes deben ser
+    reproducibles mediante reglas de código.
+14. Si una petición entra en conflicto con la arquitectura o con una
+    regla ya definida, explica el conflicto y propone una solución
+    compatible.
+15. No intentes construir todas las fases en una sola entrega. Trabaja
+    en el siguiente incremento acordado y deja el proyecto ejecutable.
+
+## Formato esperado al trabajar en el proyecto
+
+Antes de cada implementación importante, presenta: - Objetivo del
+incremento. - Sistemas afectados. - Archivos que planeas crear o
+modificar. - Dependencias. - Riesgos de compatibilidad. - Pruebas de
+aceptación.
+
+Después de implementarlo, informa: - Qué se implementó. - Qué archivos
+cambiaron. - Cómo ejecutar el proyecto. - Qué pruebas se realizaron y
+sus resultados. - Qué queda pendiente.
+
+------------------------------------------------------------------------
+
+# 1. VISIÓN GENERAL
+
+REPÚBLICA será un simulador político de El Salvador que permitirá al
+jugador construir una organización política, competir por influencia
+territorial, participar en elecciones, controlar instituciones,
+gobernar, cambiar el régimen político y desarrollar una estrategia
+internacional.
+
+La experiencia toma como referencia funcional el juego argentino
+**¿Quién quiere gobernar?**, especialmente su estructura de navegación,
+tarjetas de acciones, gestión de recursos, organización partidaria,
+expansión territorial, apoyos, candidaturas, coaliciones y campañas.
+
+La intención es adaptar y ampliar esas ideas al contexto salvadoreño. Se
+desarrollará una implementación propia, con código, textos, interfaz y
+recursos gráficos propios. No se dependerá de copiar código o materiales
+protegidos del juego de referencia.
+
+REPÚBLICA debe evolucionar desde un simulador político nacional hacia un
+simulador político, institucional y geopolítico de gran escala.
+
+## Principios fundamentales
+
+-   **Profundidad:** numerosos sistemas, acciones y decisiones.
+-   **Realismo:** recursos limitados, instituciones, reglas y
+    consecuencias.
+-   **Libertad:** rutas democráticas, reformistas, autoritarias,
+    revolucionarias y escenarios alternativos.
+-   **Interconexión:** las decisiones afectan otros sistemas.
+-   **Neutralidad ideológica:** las mecánicas no deben favorecer
+    artificialmente una ideología.
+-   **Adaptación salvadoreña:** instituciones, territorio, historia y
+    reglas electorales propias de El Salvador.
+-   **Modularidad:** los sistemas deben poder ampliarse sin rehacer el
+    proyecto.
+-   **Persistencia:** las partidas se guardan y pueden continuar.
+-   **Reproducibilidad:** los resultados del motor deben poder
+    explicarse y probarse.
+
+------------------------------------------------------------------------
+
+# 2. MODOS DE JUEGO
+
+## 2.1 Modo realista
+
+Simula restricciones institucionales, económicas y políticas.
+
+Incluye: - Presupuestos limitados. - Costos de acciones. - Requisitos
+organizativos y legales. - Calendarios electorales. - Recursos humanos
+limitados. - Negociaciones. - Oposición política. - Consecuencias
+económicas y sociales. - Acontecimientos inesperados. - Reglas
+institucionales específicas del escenario.
+
+## 2.2 Modo sandbox
+
+Permite experimentar y alterar variables de la partida.
+
+Opciones: - Dinero y recursos configurables. - Indicadores nacionales
+modificables. - Fechas electorales configurables. - Creación libre de
+partidos. - Modificación de apoyos e influencia. - Eventos
+personalizados. - Control de múltiples facciones. - Avance de turnos. -
+Ajustes de reglas y condiciones iniciales.
+
+Las modificaciones de sandbox deben quedar registradas y no corromper el
+estado de la partida.
+
+## 2.3 Modo histórico
+
+Permite iniciar partidas desde escenarios basados en períodos concretos.
+
+Ejemplos de escenarios que podrán desarrollarse: - Escenarios históricos
+de elecciones salvadoreñas. - Escenario político de 2024. - Escenario
+previo a elecciones futuras. - Escenarios alternativos creados por el
+usuario.
+
+Los datos de cada escenario deben corresponder a su período. No se deben
+mezclar estadísticas de años diferentes como si fueran simultáneas.
+
+## 2.4 Escenarios alternativos
+
+El jugador podrá crear situaciones ficticias: nuevos partidos,
+resultados electorales alternativos, crisis institucionales, gobiernos
+distintos, cambios constitucionales y relaciones internacionales
+hipotéticas.
+
+Todo contenido ficticio debe identificarse como tal.
+
+------------------------------------------------------------------------
+
+# 3. EL SALVADOR: TERRITORIO Y MAPA
+
+El Salvador será el escenario nacional inicial.
+
+## 3.1 División territorial
+
+El modelo debe poder representar: - 14 departamentos. - 44 municipios,
+según la organización municipal vigente desde 2024. - Distritos como
+unidades territoriales cuando el escenario lo requiera.
+
+La estructura territorial debe ser dependiente del escenario y de la
+fecha, para que los datos históricos puedan representar divisiones
+anteriores cuando corresponda.
+
+Cada departamento y municipio podrá tener: - Población. - Electores
+registrados. - Participación electoral. - Apoyo por partido. -
+Influencia política. - Organización partidaria. - Actividad económica. -
+Indicadores sociales. - Infraestructura. - Gobierno local. - Historial
+electoral.
+
+## 3.2 Mapa nacional interactivo
+
+Capas previstas: 1. Apoyo electoral. 2. Influencia política. 3.
+Organización partidaria. 4. Partido gobernante de cada municipio. 5.
+Resultados históricos. 6. Indicadores económicos. 7. Población. 8.
+Actividad política.
+
+Funciones: - Seleccionar departamentos y municipios. - Consultar fichas
+territoriales. - Comparar territorios. - Ver resultados electorales. -
+Mostrar zonas disputadas. - Consultar presencia de partidos. - Filtrar
+por partido, fecha y variable.
+
+El mapa debe usar datos geográficos reales y verificables. No inventar
+fronteras ni geometrías.
+
+------------------------------------------------------------------------
+
+# 4. PARTIDOS POLÍTICOS
+
+## 4.1 Tipos de partidos
+
+El juego incluirá: - Partidos reales salvadoreños. - Partidos ficticios
+generados por el juego. - Partidos personalizados creados por el
+jugador.
+
+Los partidos reales deben estar asociados a un período y utilizar
+información verificable. No atribuir ideologías, propuestas o hechos sin
+respaldo o sin indicar que pertenecen a un escenario ficticio.
+
+## 4.2 Creación de partidos
+
+El jugador podrá configurar: - Nombre. - Siglas. - Logotipo propio o
+seleccionado. - Color principal y secundario. - Lema. - Ideología y
+orientación política. - Posiciones económicas y sociales. -
+Principios. - Objetivos. - Programa político. - Dirigentes. - Sede
+principal.
+
+## 4.3 Atributos partidarios
+
+Cada partido tendrá estadísticas: - Reconocimiento público. -
+Organización interna. - Capacidad territorial. - Recursos económicos. -
+Militancia. - Cohesión interna. - Capacidad de comunicación. -
+Experiencia electoral. - Relaciones políticas. - Credibilidad.
+
+Los atributos deben tener límites y reglas de evolución documentadas.
+
+## 4.4 Afiliados y estructura
+
+Acciones: - Reclutar afiliados. - Organizar reuniones. - Crear equipos
+territoriales. - Abrir sedes. - Designar responsables. - Capacitar
+militantes. - Gestionar conflictos internos. - Organizar asambleas
+partidarias. - Fortalecer estructuras municipales y departamentales.
+
+Los afiliados podrán tener experiencia, actividad, compromiso y
+ubicación territorial.
+
+------------------------------------------------------------------------
+
+# 5. CONQUISTA E INFLUENCIA TERRITORIAL
+
+La conquista territorial será política, electoral, organizativa y
+diplomática; no una conquista militar dentro de El Salvador.
+
+Se distinguirán tres conceptos:
+
+### Influencia
+
+Capacidad de un partido para mantener presencia, relaciones y actividad
+en un territorio.
+
+### Apoyo electoral
+
+Respaldo ciudadano simulado e intención de voto. No equivale
+automáticamente a control institucional.
+
+### Control institucional
+
+Control de una alcaldía u otro cargo como resultado del procedimiento
+electoral correspondiente.
+
+## 5.1 Acciones territoriales
+
+-   Expandir influencia.
+-   Consolidar presencia.
+-   Abrir una sede territorial.
+-   Negociar apoyo local.
+-   Incorporar dirigentes.
+-   Organizar actividades comunitarias.
+-   Fortalecer municipios aliados.
+-   Competir por alcaldías.
+-   Recuperar presencia perdida.
+
+## 5.2 Competencia
+
+Los partidos rivales compiten por los mismos territorios. El resultado
+depende de recursos, organización, influencia previa, apoyo, actividad
+de competidores y acontecimientos.
+
+Un partido puede tener organización fuerte sin ser el más votado. No
+confundir estructura partidaria, intención de voto y resultado
+electoral.
+
+------------------------------------------------------------------------
+
+# 6. SISTEMA DE ACCIONES
+
+La interfaz de acciones estará inspirada en las tarjetas de acción del
+juego de referencia.
+
+Cada acción tendrá: - Nombre. - Descripción. - Categoría. - Costo
+económico. - Costo de tiempo o puntos de acción. - Requisitos. -
+Territorio. - Efectos posibles. - Efectos secundarios. - Probabilidad de
+resultado cuando corresponda. - Tiempo de recuperación. - Historial.
+
+## 6.1 Campaña
+
+-   Recorrida territorial.
+-   Acto partidario.
+-   Mitin político.
+-   Entrevista.
+-   Debate.
+-   Conferencia de prensa.
+-   Publicidad.
+-   Publicidad digital.
+-   Visita comunitaria.
+-   Encuentro con simpatizantes.
+-   Lanzamiento de propuestas.
+-   Presentación de candidatos.
+-   Gira departamental.
+
+## 6.2 Organización
+
+-   Reclutar afiliados.
+-   Crear o fortalecer sedes.
+-   Formar equipos.
+-   Designar responsables.
+-   Reunirse con afiliados.
+-   Capacitar militantes.
+-   Crear estructura municipal.
+-   Crear estructura departamental.
+-   Organizar asambleas.
+-   Resolver conflictos internos.
+
+## 6.3 Comunicación
+
+-   Entrevistas en televisión y radio.
+-   Conferencias.
+-   Publicaciones.
+-   Campañas digitales.
+-   Comunicados.
+-   Debates públicos.
+-   Presentación de propuestas.
+-   Giras de medios.
+-   Gestión de crisis comunicacionales.
+
+## 6.4 Negociación y sectores
+
+-   Negociar coaliciones.
+-   Buscar apoyo legislativo.
+-   Reunirse con dirigentes.
+-   Negociar acuerdos programáticos.
+-   Construir alianzas municipales.
+-   Formar bloques legislativos.
+-   Reunirse con empresarios, productores, trabajadores, comerciantes,
+    estudiantes, asociaciones profesionales y organizaciones
+    comunitarias.
+
+Los grupos tendrán intereses propios y podrán aceptar, rechazar o
+condicionar acuerdos. Una reunión no debe garantizar apoyo automático.
+
+## 6.5 Financiamiento
+
+-   Recaudación de fondos.
+-   Donaciones permitidas.
+-   Eventos de recaudación.
+-   Administración de recursos.
+-   Auditoría financiera.
+-   Campañas de afiliación.
+
+El financiamiento debe respetar las reglas legales configuradas en el
+escenario. No presentar prácticas ilícitas como mecanismos legítimos.
+
+## 6.6 Acciones desbloqueables
+
+Algunas acciones requerirán: - Nivel organizativo. - Número de
+afiliados. - Recursos suficientes. - Presencia territorial. - Posición
+institucional. - Etapa política específica.
+
+El catálogo debe ser extensible mediante datos y reglas, sin tener que
+reescribir el motor.
+
+------------------------------------------------------------------------
+
+# 7. APOYOS Y ACTORES POLÍTICOS
+
+Se distinguirán: - Apoyo ciudadano. - Apoyo territorial. - Apoyo de
+dirigentes. - Apoyo de organizaciones. - Apoyo legislativo. - Apoyo
+sectorial. - Apoyo de afiliados.
+
+Los apoyos pueden cambiar por conflictos, acuerdos, acontecimientos,
+desempeño, incumplimientos y evolución de la opinión pública.
+
+------------------------------------------------------------------------
+
+# 8. CANDIDATURAS Y COALICIONES
+
+## 8.1 Cargos
+
+-   Presidencia.
+-   Vicepresidencia.
+-   Diputaciones.
+-   Concejos municipales.
+-   Alcaldías, según la estructura y reglas del escenario.
+
+Los candidatos tendrán: - Nombre. - Biografía. - Trayectoria. -
+Reconocimiento. - Experiencia política. - Apoyo. - Características de
+campaña. - Relaciones partidarias.
+
+Los personajes ficticios deben identificarse como ficticios. No inventar
+biografías de personas reales.
+
+## 8.2 Coaliciones
+
+Tipos: - Coaliciones electorales. - Acuerdos legislativos. - Alianzas
+municipales. - Pactos de gobierno. - Acuerdos programáticos.
+
+Las coaliciones tendrán beneficios, costos, condiciones y posibles
+conflictos.
+
+------------------------------------------------------------------------
+
+# 9. ELECCIONES
+
+El sistema debe representar, según el escenario y la normativa vigente
+en ese período: - Elecciones presidenciales. - Elecciones
+legislativas. - Elecciones municipales. - Elecciones internas
+partidarias cuando correspondan.
+
+## 9.1 Campaña electoral
+
+El jugador podrá: - Presentar candidatos. - Crear un programa de
+gobierno. - Elegir prioridades. - Ejecutar acciones. - Organizar
+debates. - Realizar recorridos. - Administrar recursos. - Negociar
+alianzas. - Consultar intención de voto.
+
+## 9.2 Cálculo de resultados
+
+Los resultados deben considerar: - Apoyo territorial. - Intención de
+voto. - Participación. - Reconocimiento de candidatos. - Organización. -
+Coaliciones. - Acontecimientos. - Desempeño de campaña. - Reglas
+electorales del escenario.
+
+No producir resultados arbitrarios. Separar los algoritmos de los datos
+históricos y de la interfaz.
+
+## 9.3 Representación legislativa
+
+El número de escaños, circunscripciones, fórmula electoral y reglas de
+asignación deben depender del escenario histórico. El motor debe
+permitir configurar las reglas sin reescribir el algoritmo central.
+
+------------------------------------------------------------------------
+
+# 10. ASAMBLEA LEGISLATIVA: SISTEMA FUNDAMENTAL
+
+**El Salvador tiene una Asamblea Legislativa unicameral; no tiene Senado
+ni un Congreso bicameral.** Los escenarios salvadoreños históricos deben
+representar la Asamblea Legislativa, no inventar una segunda cámara.
+
+El sistema legislativo debe ser uno de los pilares del juego.
+
+## 10.1 Composición
+
+La Asamblea incluirá: - Diputados por partido. - Diputados
+independientes cuando corresponda. - Presidencia legislativa. - Junta
+Directiva. - Comisiones. - Bloques parlamentarios. - Mayorías y
+minorías. - Cambios de bancada. - Coaliciones legislativas.
+
+El número de diputaciones debe depender del escenario. Por ejemplo, el
+período legislativo 2024-2027 tiene 60 diputaciones. No asumir que ese
+número sirve para todos los períodos históricos o futuros.
+
+## 10.2 Independencia entre Ejecutivo y Legislativo
+
+El jugador puede: - Ganar la presidencia sin controlar la Asamblea. -
+Ganar mayoría legislativa sin ganar la presidencia. - Gobernar con una
+coalición. - Enfrentar una Asamblea opositora. - Tener una mayoría
+frágil. - Perder votaciones. - Negociar leyes y acuerdos.
+
+Controlar el Ejecutivo no significa controlar automáticamente el
+Legislativo.
+
+## 10.3 Control parlamentario
+
+Funciones: - Elegir la presidencia legislativa mediante el procedimiento
+correspondiente. - Negociar la Junta Directiva. - Buscar presidencias de
+comisiones. - Distribuir representación en comisiones. - Negociar
+agendas legislativas. - Formar bloques. - Negociar con diputados
+independientes. - Gestionar divisiones de bancada.
+
+La composición y elección de órganos internos deben seguir las reglas
+del escenario.
+
+## 10.4 Proceso legislativo jugable
+
+El jugador podrá: 1. Presentar una iniciativa cuando esté facultado. 2.
+Remitirla a la comisión correspondiente. 3. Discutirla. 4. Modificarla.
+5. Obtener un dictamen cuando proceda. 6. Llevarla al pleno. 7.
+Debatirla. 8. Votar. 9. Verificar quórum y mayoría requerida. 10.
+Remitirla al Ejecutivo para el procedimiento correspondiente. 11.
+Gestionar sanción, observaciones o veto cuando aplique. 12. Registrar
+publicación y entrada en vigor cuando corresponda.
+
+El proceso debe modelar las reglas reales del escenario, no asumir que
+todas las leyes siguen exactamente el mismo procedimiento.
+
+## 10.5 Votación de diputados
+
+Cada diputado tendrá: - Partido o condición independiente. - Bancada. -
+Posición sobre el proyecto. - Lealtad partidaria. - Relaciones
+políticas. - Intereses simulados. - Historial de votaciones. -
+Posibilidad de cambiar de posición por negociación o acontecimientos.
+
+Votos posibles: - A favor. - En contra. - Abstención.
+
+Las mayorías y el quórum serán configurables por tipo de asunto y
+escenario. No aplicar una mayoría única a todas las decisiones. Las
+reformas constitucionales y otros asuntos especiales requieren reglas
+diferenciadas.
+
+Ejemplo puramente ilustrativo de una Asamblea de 60 integrantes: - 34
+votos a favor. - 20 votos en contra. - 6 abstenciones. - Resultado:
+aprobado si se cumple la mayoría aplicable.
+
+## 10.6 Tipos de proyectos
+
+-   Presupuesto nacional.
+-   Reformas tributarias.
+-   Educación.
+-   Salud.
+-   Seguridad.
+-   Infraestructura.
+-   Desarrollo económico.
+-   Reformas institucionales.
+-   Reformas constitucionales.
+-   Tratados y acuerdos cuando corresponda.
+-   Leyes creadas por el jugador dentro de las competencias del
+    escenario.
+
+## 10.7 Ejecutivo y Asamblea
+
+-   El presidente no puede aprobar leyes unilateralmente.
+-   La Asamblea puede rechazar iniciativas.
+-   El Ejecutivo puede utilizar los mecanismos constitucionales
+    aplicables.
+-   Puede haber observaciones y veto cuando la normativa lo contemple.
+-   Las coaliciones pueden facilitar o dificultar la gobernabilidad.
+-   Los desacuerdos pueden generar crisis políticas.
+
+## 10.8 Crisis y ocupación institucional
+
+Se podrán generar escenarios ficticios de ruptura institucional,
+ocupación forzada de instituciones, interrupción de sesiones, intentos
+de disolución, gobiernos de emergencia y transiciones.
+
+Una ocupación ficticia de la Asamblea puede provocar: - Fracaso. -
+Crisis institucional. - Suspensión de sesiones. - Ruptura
+constitucional. - Gobierno de transición. - Negociación para restaurar
+las sesiones. - Conflicto nacional. - Reorganización institucional.
+
+La ocupación no concede automáticamente legitimidad ni control jurídico.
+Los diputados, instituciones y reconocimiento internacional pueden
+continuar existiendo.
+
+Las acciones violentas se representan de forma abstracta y narrativa,
+con consecuencias y sin instrucciones operativas para realizar ataques,
+secuestros, atentados u ocupaciones reales.
+
+------------------------------------------------------------------------
+
+# 11. GOBIERNO Y ADMINISTRACIÓN DEL ESTADO
+
+Al ganar la presidencia se desbloquea una etapa de gobierno.
+
+## 11.1 Presidencia
+
+-   Establecer prioridades.
+-   Nombrar funcionarios dentro de sus competencias.
+-   Dirigir el gabinete.
+-   Presentar iniciativas.
+-   Administrar recursos.
+-   Coordinar instituciones.
+-   Gestionar acontecimientos nacionales.
+
+## 11.2 Ministerios y áreas
+
+Posibles áreas: - Hacienda. - Economía. - Educación. - Salud. -
+Seguridad. - Defensa. - Obras Públicas. - Relaciones Exteriores. -
+Agricultura. - Medio Ambiente. - Trabajo. - Gobernación.
+
+La estructura ministerial debe ser configurable por escenario. No asumir
+que todas las denominaciones institucionales permanecen iguales
+históricamente.
+
+## 11.3 Instituciones y justicia
+
+Incluir instituciones independientes, controles y competencias. No
+convertir automáticamente al sistema judicial en una herramienta del
+presidente.
+
+Se simularán: - Competencias. - Procedimientos. - Controles. -
+Conflictos institucionales. - Límites legales. - Crisis
+constitucionales.
+
+------------------------------------------------------------------------
+
+# 12. RUTAS POLÍTICAS Y CAMBIOS DE RÉGIMEN
+
+El jugador no está obligado a seguir una carrera democrática.
+
+Rutas posibles: - Democrática. - Reformista. - Autoritaria. -
+Dictatorial. - Revolucionaria. - Militar. - Nacionalista. -
+Tecnocrática. - Expansionista.
+
+Las rutas no son exclusivas por ideología. Partidos de distintas
+corrientes podrán adoptar diferentes estrategias según el escenario.
+
+## 12.1 Derrota electoral y continuidad
+
+Perder una elección no termina la partida.
+
+Opciones: - Aceptar la derrota. - Reorganizar el partido. - Fortalecer
+oposición. - Participar en elecciones futuras. - Formar coaliciones. -
+Impugnar resultados mediante mecanismos institucionales. - Convocar
+movilización política. - Atravesar una crisis de partido. - Participar
+en un escenario revolucionario ficticio.
+
+## 12.2 Protestas, huelgas y levantamientos
+
+Variables: - Descontento social. - Legitimidad del gobierno. - Apoyo
+popular. - Organización de la oposición. - Cohesión institucional. -
+Situación económica. - Apoyo territorial. - Respuesta gubernamental.
+
+Resultados posibles: - Negociación. - Concesiones. - Crisis de
+gobierno. - Cambio de gabinete. - Elecciones anticipadas si el escenario
+lo permite. - Gobierno provisional. - Revolución ficticia. - Fracaso del
+levantamiento. - Conflicto interno.
+
+## 12.3 Golpes y rupturas constitucionales
+
+El juego podrá representar intentos de golpe de Estado y cambios
+extraconstitucionales como sistemas abstractos de estrategia y eventos
+narrativos.
+
+Resultados: - Fracaso. - Crisis institucional. - Gobierno de
+transición. - Cambio de gobierno. - Ruptura constitucional. - Conflicto
+interno.
+
+No incluir instrucciones tácticas, logísticas u operativas para ejecutar
+golpes reales.
+
+## 12.4 Dictaduras y autoritarismo
+
+Posibilidades de simulación: - Concentración de atribuciones
+ejecutivas. - Modificación de instituciones. - Reducción de
+contrapesos. - Restricciones a la competencia partidaria. - Cambios de
+reglas electorales. - Gobiernos de emergencia. - Restauración
+institucional. - Transiciones democráticas.
+
+Consecuencias: - Cambios de legitimidad. - Resistencia. - Reacciones
+internacionales. - Sanciones. - Fuga de capitales. - Protestas. -
+Aislamiento diplomático. - Conflictos institucionales.
+
+El régimen no otorga poder ilimitado ni elimina las consecuencias.
+
+------------------------------------------------------------------------
+
+# 13. INTELIGENCIA, ESPIONAJE Y CONSPIRACIONES
+
+El juego incluirá una agencia de inteligencia y sistemas de operaciones
+políticas ficticias.
+
+Funciones: - Crear una agencia. - Obtener informes. - Investigar
+partidos rivales. - Descubrir conspiraciones. - Detectar
+infiltraciones. - Investigar corrupción. - Desarrollar
+contrainteligencia. - Detectar operaciones extranjeras. - Gestionar
+filtraciones. - Desarticular conspiraciones. - Resolver operaciones
+encubiertas abstractas.
+
+Categorías de eventos: - Espionaje. - Contrainteligencia. -
+Filtración. - Desinformación. - Sabotaje institucional abstracto. -
+Conspiración. - Operación encubierta.
+
+El sistema puede representar terrorismo y violencia política como
+acontecimientos ficticios de alto nivel y consecuencias sobre víctimas,
+estabilidad, legitimidad y relaciones internacionales. No proporcionar
+procedimientos, selección de objetivos, armas, explosivos, métodos de
+ataque, secuestro ni instrucciones para cometer violencia real.
+
+Las mecánicas deben ser neutrales: cualquier facción puede aparecer como
+actor de una trama ficticia, sin atribuir violencia o conspiraciones a
+una ideología real por defecto.
+
+------------------------------------------------------------------------
+
+# 14. ORGANIZACIONES Y FACCIONES
+
+No todos los actores serán partidos.
+
+Tipos: - Movimientos sociales. - Sindicatos. - Organizaciones
+empresariales. - Organizaciones estudiantiles. - Organizaciones
+comunitarias. - Fuerzas armadas como institución. - Organizaciones
+religiosas como actores sociales, tratadas con neutralidad. - Grupos
+insurgentes ficticios. - Organizaciones clandestinas ficticias. -
+Organismos internacionales.
+
+Cada actor tendrá: - Dirigentes. - Recursos. - Objetivos. -
+Relaciones. - Influencia. - Ubicación. - Cohesión. - Historial.
+
+Podrán surgir nuevas facciones durante una partida.
+
+------------------------------------------------------------------------
+
+# 15. CONFLICTOS INTERNOS Y GUERRA CIVIL
+
+Los conflictos pueden evolucionar según las decisiones y circunstancias.
+
+Mecánicas: - Protestas masivas. - Huelgas. - Crisis de legitimidad. -
+División institucional. - Rebeliones ficticias. - Insurgencias
+ficticias. - Gobiernos paralelos. - Fragmentación territorial. -
+Negociaciones de paz. - Acuerdos de reconciliación. - Reconstrucción
+nacional.
+
+El conflicto afecta: - Población. - Infraestructura. - Economía. -
+Instituciones. - Territorio. - Relaciones internacionales.
+
+No es un evento obligatorio. Se origina a partir de las variables y
+decisiones de la partida.
+
+------------------------------------------------------------------------
+
+# 16. GEOPOLÍTICA Y CONQUISTA DE OTROS PAÍSES
+
+El proyecto debe diseñarse desde el inicio para poder expandirse a un
+mapa mundial, aunque la primera versión jugable se centre en El
+Salvador.
+
+## 16.1 Países
+
+Cada país tendrá: - Gobierno. - Régimen. - Población. - Economía. -
+Fuerzas armadas representadas mediante estadísticas agregadas. -
+Relaciones diplomáticas. - Recursos. - Estabilidad. - Territorio. -
+Alianzas. - Historial.
+
+Los datos internacionales deben corresponder al año del escenario.
+
+## 16.2 Diplomacia
+
+-   Establecer relaciones.
+-   Crear alianzas.
+-   Firmar tratados.
+-   Negociar comercio.
+-   Establecer cooperación.
+-   Formar bloques regionales.
+-   Imponer o enfrentar sanciones.
+-   Romper relaciones.
+-   Participar en organizaciones internacionales.
+-   Negociar acuerdos territoriales.
+
+## 16.3 Expansión territorial internacional
+
+En escenarios ficticios o alternativos: - Anexiones por acuerdos. -
+Protectorados. - Gobiernos aliados. - Federaciones. - Confederaciones. -
+Zonas de influencia. - Ocupación de territorios en conflictos
+simulados. - Administración de territorios. - Movimientos
+independentistas. - Tratados de paz.
+
+La expansión debe tener consecuencias administrativas, económicas,
+sociales y diplomáticas.
+
+## 16.4 Guerra
+
+Sistema estratégico por turnos, no un shooter.
+
+Variables: - Fuerzas agregadas. - Presupuesto militar. - Equipamiento
+como estadísticas abstractas. - Preparación. - Logística agregada. -
+Capacidad defensiva. - Estabilidad. - Relaciones internacionales. -
+Tratados de paz. - Armisticios. - Ocupación. - Reconstrucción.
+
+Los enfrentamientos se resuelven mediante reglas agregadas y eventos. No
+incluir instrucciones tácticas para causar daño real.
+
+------------------------------------------------------------------------
+
+# 17. ECONOMÍA NACIONAL
+
+Indicadores: - PIB. - Crecimiento. - Inflación. - Desempleo. - Ingresos
+públicos. - Gastos. - Déficit. - Deuda. - Inversión. - Consumo. -
+Comercio. - Productividad.
+
+## 17.1 Presupuesto
+
+Áreas: - Educación. - Salud. - Seguridad. - Defensa. -
+Infraestructura. - Administración pública. - Desarrollo económico. -
+Protección social. - Servicio de deuda. - Otras obligaciones.
+
+Los presupuestos deben cuadrar contablemente. Registrar ingresos,
+gastos, financiamiento y saldo.
+
+## 17.2 Impuestos
+
+Los parámetros tributarios afectan: - Recaudación. - Consumo. -
+Actividad empresarial. - Inversión. - Distribución de ingresos. -
+Popularidad.
+
+## 17.3 Deuda
+
+Registrar: - Saldo. - Intereses. - Vencimientos. - Servicio anual. -
+Riesgo financiero.
+
+No crear ni destruir dinero sin una explicación contable.
+
+------------------------------------------------------------------------
+
+# 18. POBLACIÓN Y SOCIEDAD
+
+Indicadores: - Población total. - Distribución por edades. -
+Natalidad. - Mortalidad. - Migración. - Empleo. - Pobreza. -
+Educación. - Salud. - Vivienda. - Calidad de vida.
+
+## 18.1 Migración
+
+-   Emigración.
+-   Inmigración.
+-   Retorno.
+-   Remesas.
+-   Población salvadoreña en el exterior.
+
+Las decisiones económicas y sociales pueden modificar estos indicadores.
+
+------------------------------------------------------------------------
+
+# 19. SEGURIDAD Y JUSTICIA
+
+Indicadores: - Seguridad ciudadana. - Criminalidad. - Capacidad
+policial. - Prevención. - Sistema penitenciario. - Administración de
+justicia. - Percepción de seguridad. - Derechos y garantías.
+
+Distinguir estadísticas de criminalidad, percepción ciudadana y
+capacidad institucional.
+
+Las políticas pueden producir consecuencias sociales, económicas,
+institucionales y jurídicas.
+
+------------------------------------------------------------------------
+
+# 20. RELACIONES EXTERIORES
+
+Funciones: - Negociar acuerdos. - Establecer relaciones diplomáticas. -
+Participar en reuniones internacionales. - Gestionar comercio
+exterior. - Negociar cooperación. - Administrar relaciones con países. -
+Gestionar conflictos diplomáticos.
+
+Indicadores: - Confianza. - Cooperación. - Comercio. - Tensiones. -
+Influencia internacional.
+
+------------------------------------------------------------------------
+
+# 21. ACONTECIMIENTOS Y CADENAS DE EVENTOS
+
+Categorías:
+
+**Políticos** - Renuncia de ministros. - Ruptura de coaliciones. -
+Escándalos ficticios. - Crisis legislativas. - Crisis
+constitucionales. - Cambios de partido. - Divisiones internas.
+
+**Económicos** - Recesiones. - Inflación. - Endeudamiento. - Quiebras. -
+Inversión extranjera. - Descubrimiento de recursos.
+
+**Sociales** - Protestas. - Huelgas. - Migraciones. - Descontento. -
+Desastres naturales. - Crisis sanitarias.
+
+**Internacionales** - Guerras. - Cambios de gobierno. - Sanciones. -
+Tratados. - Rupturas diplomáticas. - Crisis fronterizas.
+
+Cada evento tendrá: - Fecha. - Descripción. - Contexto. - Opciones de
+respuesta. - Costos. - Consecuencias. - Efectos posteriores.
+
+Los eventos pueden formar cadenas de varios turnos. Distinguir siempre
+eventos históricos y ficticios.
+
+------------------------------------------------------------------------
+
+# 22. TIEMPO Y TURNOS
+
+La modalidad inicial será mensual, con posibilidad de configurar otros
+ritmos.
+
+Cada turno actualizará: 1. Economía. 2. Población. 3. Opinión pública.
+4. Influencia territorial. 5. Recursos. 6. Actividad de partidos. 7.
+Relaciones políticas. 8. Acontecimientos. 9. Presupuesto. 10. Calendario
+electoral. 11. Relaciones internacionales. 12. Instituciones.
+
+El jugador revisa los resultados antes de avanzar al siguiente turno.
+
+------------------------------------------------------------------------
+
+# 23. INTERFAZ
+
+La interfaz se inspira en la estructura compacta y funcional del juego
+argentino.
+
+## 23.1 Navegación propuesta
+
+**SITUACIÓN** - Resumen. - Mapa nacional. - Mapa mundial. -
+Estadísticas.
+
+**POLÍTICA** - Partidos. - Candidaturas. - Coaliciones. - Afiliados. -
+Acciones. - Apoyos. - Conquista territorial.
+
+**GOBIERNO** - Presidencia. - Ministerios. - Asamblea. -
+Instituciones. - Régimen político.
+
+**INTELIGENCIA** - Agencia. - Espionaje. - Contrainteligencia. -
+Conspiraciones. - Operaciones especiales.
+
+**SEGURIDAD Y DEFENSA** - Fuerzas armadas. - Seguridad nacional. -
+Conflictos internos. - Guerra.
+
+**ECONOMÍA** - Presupuesto. - Impuestos. - Deuda. - Comercio. -
+Industria.
+
+**SOCIEDAD** - Población. - Educación. - Salud. - Empleo. - Migración.
+
+**GEOPOLÍTICA** - Países. - Diplomacia. - Alianzas. - Territorios. -
+Expansión. - Organismos internacionales.
+
+**ACONTECIMIENTOS** - Noticias. - Crisis. - Eventos. - Registro
+histórico.
+
+**SISTEMA** - Guardar. - Cargar. - Sandbox. - Configuración.
+
+Las secciones se mostrarán según la etapa de la partida y los sistemas
+desbloqueados.
+
+## 23.2 Dirección visual
+
+-   Interfaz oscura por defecto.
+-   Fondo gris casi negro.
+-   Paneles discretos.
+-   Bordes finos.
+-   Tipografía legible.
+-   Tarjetas de acciones.
+-   Indicadores compactos.
+-   Gráficas.
+-   Mapas interactivos.
+-   Ventanas de información.
+-   Notificaciones.
+-   Historial de acontecimientos.
+
+Priorizar densidad informativa sin sacrificar legibilidad. Evitar
+estética infantil y decoraciones innecesarias.
+
+------------------------------------------------------------------------
+
+# 24. INTELIGENCIA ARTIFICIAL
+
+La IA podrá ayudar a generar: - Partidos ficticios. - Dirigentes
+ficticios. - Candidatos ficticios. - Acontecimientos. - Reacciones de
+actores. - Descripciones. - Noticias internas. - Eventos de campaña.
+
+La IA no debe decidir directamente: - Resultados electorales. - Conteos
+legislativos. - Presupuestos. - Fórmulas económicas. - Reglas
+institucionales. - Cálculos fundamentales del motor.
+
+Estos deben ser reglas de código reproducibles. La IA puede redactar una
+explicación narrativa del resultado ya calculado.
+
+------------------------------------------------------------------------
+
+# 25. GUARDADO Y PERSISTENCIA
+
+Utilizar IndexedDB para almacenamiento local en la primera versión.
+
+Guardar: - Fecha y turno. - Partidos. - Candidatos. - Recursos. -
+Territorios. - Elecciones. - Instituciones. - Economía. - Población. -
+Eventos. - Historial. - Configuración.
+
+Funciones: - Guardado manual. - Guardado automático. - Múltiples
+partidas. - Carga. - Copias de seguridad. - Exportación e importación.
+
+Cada partida tendrá una versión de esquema para facilitar futuras
+actualizaciones. Implementar migraciones cuando cambie la estructura de
+datos.
+
+------------------------------------------------------------------------
+
+# 26. ARQUITECTURA TÉCNICA PROPUESTA
+
+Tecnologías sugeridas: - React. - TypeScript. - Vite. - CSS. - Zustand o
+alternativa equivalente. - IndexedDB. - Recharts. - Leaflet u otra
+biblioteca de mapas.
+
+Estas son propuestas iniciales, no una obligación de reemplazar una
+arquitectura existente sin evaluación.
+
+## 26.1 Estructura de carpetas sugerida
+
+``` text
+REPUBLICA/
+├── public/
+│   ├── images/
+│   ├── icons/
+│   └── maps/
+├── src/
+│   ├── app/
+│   ├── components/
+│   ├── pages/
+│   ├── systems/
+│   │   ├── political/
+│   │   ├── parties/
+│   │   ├── actions/
+│   │   ├── territorial/
+│   │   ├── support/
+│   │   ├── candidates/
+│   │   ├── coalitions/
+│   │   ├── elections/
+│   │   ├── legislature/
+│   │   ├── government/
+│   │   ├── institutions/
+│   │   ├── intelligence/
+│   │   ├── conflicts/
+│   │   ├── diplomacy/
+│   │   ├── warfare/
+│   │   ├── economy/
+│   │   ├── population/
+│   │   ├── security/
+│   │   └── events/
+│   ├── engine/
+│   │   ├── simulation/
+│   │   ├── calendar/
+│   │   ├── calculations/
+│   │   └── rules/
+│   ├── data/
+│   │   ├── country/
+│   │   ├── departments/
+│   │   ├── municipalities/
+│   │   ├── parties/
+│   │   └── scenarios/
+│   ├── store/
+│   ├── persistence/
+│   ├── hooks/
+│   ├── styles/
+│   └── utils/
+├── docs/
+│   ├── GDD.md
+│   ├── ARCHITECTURE.md
+│   ├── SYSTEMS.md
+│   ├── DATA_SOURCES.md
+│   └── CHANGELOG.md
+└── package.json
+```
+
+## 26.2 Separación de responsabilidades
+
+-   La interfaz presenta información y recibe acciones.
+-   Los sistemas contienen reglas específicas de cada dominio.
+-   El motor coordina turnos y actualizaciones.
+-   Los datos contienen escenarios y contenido.
+-   La persistencia guarda y recupera partidas.
+-   Las pruebas verifican reglas y cálculos.
+
+Ejemplo: una acción territorial solicita al sistema territorial
+modificar influencia. El motor valida costos y requisitos, actualiza el
+estado y registra el evento. La interfaz muestra el resultado.
+
+------------------------------------------------------------------------
+
+# 27. REGLAS DE BALANCE Y VALIDACIÓN
+
+Variables con límites documentados, por ejemplo: - Popularidad: 0 a
+100. - Influencia territorial: 0 a 100. - Organización: 0 a 100. -
+Recursos: cantidades monetarias. - Afiliados: números enteros. - Apoyo
+electoral: proporciones coherentes.
+
+Evitar: - Dinero infinito involuntario. - Resultados electorales
+imposibles. - Influencia fuera de límites. - Duplicación de afiliados. -
+Eventos repetidos incorrectamente. - Presupuestos que no cuadran. -
+Estados incompatibles. - Votaciones que no suman el total de
+diputados. - Escaños que excedan la composición de la Asamblea. - Leyes
+aprobadas sin cumplir la mayoría aplicable. - Turnos que actualicen dos
+veces un mismo sistema.
+
+------------------------------------------------------------------------
+
+# 28. DATOS Y FUENTES DE EL SALVADOR
+
+Fuentes institucionales que deben consultarse y registrarse: - Tribunal
+Supremo Electoral: elecciones, partidos, calendarios y resultados. -
+Asamblea Legislativa: Constitución, legislación, procedimientos y
+composición. - Banco Central de Reserva: economía e indicadores. -
+Instituciones estadísticas nacionales: demografía. - Instituciones
+públicas: información sectorial. - Fuentes internacionales reconocidas:
+estadísticas comparativas.
+
+Cada dato debe incluir: - Fuente. - Fecha de publicación o referencia. -
+Cobertura. - Unidad. - Método de obtención. - Versión del escenario.
+
+No usar datos actuales para representar períodos históricos. No inventar
+datos si no están disponibles: marcar los campos como desconocidos o
+estimados y explicar el método.
+
+------------------------------------------------------------------------
+
+# 29. FASES DE DESARROLLO
+
+El alcance completo es grande. Implementar por etapas.
+
+## Fase 0 --- Preparación
+
+-   Repositorio.
+-   Configuración técnica.
+-   Arquitectura.
+-   Documentación.
+-   Datos territoriales.
+-   Reglas de desarrollo.
+
+## Fase 1 --- Base funcional
+
+-   Menú principal.
+-   Crear partida.
+-   Seleccionar escenario.
+-   Interfaz general.
+-   Navegación.
+-   Guardado y carga.
+-   Motor de turnos.
+
+## Fase 2 --- Política
+
+-   Crear partidos.
+-   Dirigentes.
+-   Afiliados.
+-   Recursos.
+-   Ideologías.
+-   Acciones.
+-   Apoyos.
+
+## Fase 3 --- Territorio
+
+-   Mapa nacional.
+-   Departamentos.
+-   Municipios.
+-   Influencia.
+-   Conquista política.
+-   Organización territorial.
+-   Competencia entre partidos.
+
+## Fase 4 --- Elecciones y Asamblea
+
+-   Candidatos.
+-   Coaliciones.
+-   Campañas.
+-   Intención de voto.
+-   Elecciones presidenciales.
+-   Elecciones legislativas.
+-   Elecciones municipales.
+-   Asignación de escaños.
+-   Composición de la Asamblea.
+-   Proyectos de ley.
+-   Comisiones.
+-   Debates y votaciones.
+-   Presidencia legislativa y Junta Directiva.
+
+## Fase 5 --- Gobierno e instituciones
+
+-   Presidencia.
+-   Ministerios.
+-   Asamblea.
+-   Leyes.
+-   Presupuesto.
+-   Instituciones.
+-   Justicia.
+-   Relaciones Ejecutivo-Legislativo.
+
+## Fase 6 --- País
+
+-   Economía.
+-   Población.
+-   Migración.
+-   Seguridad.
+-   Educación.
+-   Salud.
+-   Infraestructura.
+-   Relaciones exteriores.
+
+## Fase 7 --- Rutas de poder y conflictos
+
+-   Cambios de régimen.
+-   Protestas.
+-   Revoluciones ficticias.
+-   Crisis institucionales.
+-   Dictaduras.
+-   Inteligencia.
+-   Conspiraciones abstractas.
+-   Conflictos internos.
+
+## Fase 8 --- Geopolítica
+
+-   Mapa mundial.
+-   Países.
+-   Diplomacia.
+-   Alianzas.
+-   Comercio internacional.
+-   Expansión territorial.
+-   Guerra por turnos.
+-   Ocupación y reconstrucción.
+
+## Fase 9 --- Profundización
+
+-   Eventos dinámicos.
+-   IA narrativa.
+-   Escenarios históricos.
+-   Sandbox avanzado.
+-   Más acciones.
+-   Balance.
+-   Optimización.
+
+## Fase 10 --- Versión completa
+
+-   Pruebas integrales.
+-   Corrección de errores.
+-   Compatibilidad de partidas.
+-   Documentación.
+-   Experiencia de usuario.
+
+------------------------------------------------------------------------
+
+# 30. CRITERIOS DE COMPLETITUD
+
+La primera versión completa deberá permitir: - Crear y guardar una
+partida. - Crear partidos. - Reclutar afiliados. - Obtener recursos. -
+Ejecutar acciones. - Expandir influencia. - Competir territorialmente. -
+Crear candidaturas. - Formar coaliciones. - Participar en elecciones. -
+Obtener representación legislativa. - Controlar o negociar la
+Asamblea. - Presentar proyectos de ley. - Votar y aprobar o rechazar
+leyes según reglas. - Llegar al gobierno. - Administrar ministerios. -
+Gestionar el presupuesto. - Administrar economía y población. -
+Gestionar acontecimientos. - Avanzar varios años. - Participar en
+cambios de régimen ficticios. - Guardar y recuperar la partida.
+
+La versión geopolítica ampliada deberá añadir: - Mapa mundial. -
+Gobiernos extranjeros. - Diplomacia. - Alianzas. - Expansión territorial
+internacional. - Conflictos y guerras por turnos. - Administración de
+territorios. - Reconstrucción posterior a conflictos.
+
+Un sistema no está terminado porque su interfaz se vea bien. Debe
+ejecutar su lógica, modificar el estado de la partida, interactuar con
+otros sistemas y superar pruebas.
+
+------------------------------------------------------------------------
+
+# 31. REGLAS FINALES PARA EL DESARROLLO
+
+1.  No reescribir archivos completos innecesariamente.
+2.  No eliminar funciones existentes sin autorización.
+3.  No crear sistemas duplicados.
+4.  Revisar dependencias antes de modificar un módulo.
+5.  Mantener tipos correctos.
+6.  Probar funciones después de implementarlas.
+7.  No introducir datos ficticios en escenarios históricos.
+8.  Registrar fuentes y fechas.
+9.  No usar IA generativa para cálculos reproducibles.
+10. Mantener consistencia visual.
+11. Actualizar documentación.
+12. Hacer copias de seguridad antes de cambios estructurales.
+13. No considerar terminado un sistema por su apariencia.
+14. Verificar que las acciones cambien el estado.
+15. Priorizar estabilidad y coherencia.
+16. Mantener compatibilidad de partidas o implementar migraciones.
+17. No implementar sistemas enormes en una sola entrega.
+18. Mantener una lista de tareas pendientes y decisiones abiertas.
+
+------------------------------------------------------------------------
+
+# 32. PROMPT MAESTRO PARA INICIAR EL DESARROLLO
+
+Copia este prompt junto con el README cuando trabajes con una IA de
+programación:
+
+> Quiero que trabajes conmigo en el desarrollo de REPÚBLICA, un
+> simulador político, institucional y geopolítico de El Salvador.
+>
+> Lee íntegramente el README adjunto. Es la especificación principal del
+> proyecto y contiene su visión, mecánicas, sistemas, arquitectura
+> propuesta, fases y reglas de desarrollo.
+>
+> No quiero una demostración superficial ni una interfaz con botones que
+> no hacen nada. Quiero construir un juego real, modular, ampliable y
+> con sistemas conectados.
+>
+> El proyecto toma como referencia funcional «¿Quién quiere gobernar?»
+> de Argentina, pero debe tener implementación, código, textos y
+> recursos propios, adaptados a El Salvador.
+>
+> Entre sus sistemas centrales están la creación y gestión de partidos,
+> afiliados, acciones políticas, conquista de influencia territorial,
+> elecciones, coaliciones, una Asamblea Legislativa unicameral
+> funcional, votaciones de leyes, gobierno, economía, población, cambios
+> de régimen, crisis institucionales, inteligencia abstracta, diplomacia
+> y expansión geopolítica.
+>
+> La Asamblea Legislativa debe ser un sistema real del juego:
+> composición por partidos, diputados, comisiones, Junta Directiva,
+> proyectos de ley, debates, votaciones, mayorías y relación con el
+> Ejecutivo. El presidente no debe poder aprobar leyes unilateralmente.
+>
+> El jugador podrá experimentar rutas democráticas y no democráticas,
+> escenarios de crisis, revoluciones ficticias, dictaduras, conflictos
+> internos y expansión internacional. Las mecánicas de violencia
+> política deben ser abstractas y narrativas, sin instrucciones
+> operativas para cometer violencia real.
+>
+> Quiero que avances por fases. Primero inspecciona el proyecto y dime
+> su estado real. No escribas código todavía hasta identificar qué
+> existe, qué falta y qué arquitectura conviene mantener.
+>
+> Después propón el siguiente incremento pequeño, con archivos afectados
+> y pruebas de aceptación. Implementa únicamente lo acordado, verifica
+> que funcione y documenta los cambios.
+>
+> No inventes datos históricos. Diferencia siempre escenarios reales y
+> ficticios. Los cálculos electorales, legislativos y económicos deben
+> ser reproducibles mediante código.
+>
+> Prioriza estabilidad, profundidad, coherencia y modularidad sobre
+> velocidad.
+
+------------------------------------------------------------------------
+
+# 33. ESTADO ACTUAL DEL PROYECTO
+
+**Diseño:** visión general definida.\
+**Mecánicas:** especificación inicial consolidada.\
+**Tecnología:** propuesta, pendiente de confirmar con el entorno real.\
+**Código:** no se presume que exista implementación.\
+**Datos históricos:** pendientes de recopilación y validación.\
+**Interfaz:** dirección visual definida; pendiente de construcción.\
+**Siguiente paso:** inspeccionar el entorno de desarrollo, confirmar la
+arquitectura y comenzar la Fase 0.
+
+**Principio rector:** REPÚBLICA debe ser un simulador completo, modular,
+ampliable y funcional. No una simple demostración visual.
+</file>
+
+<file path="tailwind.config.js">
+/** @type {import('tailwindcss').Config} */
+export default {
+  content: [
+    "./index.html",
+    "./src/**/*.{js,ts,jsx,tsx}",
+  ],
+  theme: {
+    extend: {
+      colors: {
+        // Paleta oscura principal – inspirada en juegos de gran estrategia
+        surface: {
+          900: '#080b10',   // Fondo máximo (el más oscuro)
+          800: '#0d1117',   // Fondo principal de la app
+          700: '#131920',   // Paneles y tarjetas
+          600: '#1a2230',   // Paneles secundarios / hover
+          500: '#1f2b3d',   // Bordes de paneles y divisores
+        },
+        // Color principal de acento
+        accent: {
+          DEFAULT: '#3b82f6', // Azul institucional
+          hover:   '#2563eb',
+          muted:   '#1d4ed8',
+        },
+        // Colores para indicadores de estado
+        success:  '#22c55e',
+        warning:  '#f59e0b',
+        danger:   '#ef4444',
+        info:     '#6366f1',
+        // Texto
+        text: {
+          primary:   '#e2e8f0',
+          secondary: '#94a3b8',
+          muted:     '#475569',
+        },
+      },
+      fontFamily: {
+        sans: ['Inter', 'system-ui', 'sans-serif'],
+        mono: ['JetBrains Mono', 'Consolas', 'monospace'],
+      },
+      fontSize: {
+        'xxs': '0.65rem',
+      },
+      borderWidth: {
+        DEFAULT: '1px',
+      },
+      animation: {
+        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+        'fade-in': 'fadeIn 0.2s ease-in',
+      },
+      keyframes: {
+        fadeIn: {
+          '0%': { opacity: '0', transform: 'translateY(4px)' },
+          '100%': { opacity: '1', transform: 'translateY(0)' },
+        },
+      },
+    },
+  },
+  plugins: [],
+}
+</file>
+
+<file path="tsconfig.json">
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "useDefineForClassFields": true,
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "skipLibCheck": true,
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "jsx": "react-jsx",
+    "strict": true,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "noFallthroughCasesInSwitch": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+  },
+  "include": ["src"],
+  "references": [{ "path": "./tsconfig.node.json" }]
+}
+</file>
+
+<file path="tsconfig.node.json">
+{
+  "compilerOptions": {
+    "composite": true,
+    "skipLibCheck": true,
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "allowSyntheticDefaultImports": true,
+    "strict": true
+  },
+  "include": ["vite.config.ts"]
+}
+</file>
+
+<file path="vite.config.ts">
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
+import path from 'path'
+
+export default defineConfig({
+  plugins: [react()],
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, './src'),
+    },
+  },
+  test: {
+    globals: true,
+    environment: 'jsdom',
+    setupFiles: './src/tests/setup.ts',
+  },
+})
+</file>
+
+</files>
