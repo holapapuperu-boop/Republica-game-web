@@ -21,7 +21,7 @@ const ITEMS_NAV: NavItem[] = [
   { id: 'situacion',    etiqueta: 'Situación',    icono: '◉', disponible: true },
   { id: 'politica',     etiqueta: 'Política',     icono: '⚑', disponible: true },
   { id: 'asamblea',     etiqueta: 'Asamblea',     icono: '⚖', disponible: false },
-  { id: 'territorio',   etiqueta: 'Territorio',   icono: '◫', disponible: false },
+  { id: 'territorio',   etiqueta: 'Territorio',   icono: '◫', disponible: true },
   { id: 'gobierno',     etiqueta: 'Gobierno',     icono: '★', disponible: false },
   { id: 'economia',     etiqueta: 'Economía',     icono: '◈', disponible: false },
   { id: 'sociedad',     etiqueta: 'Sociedad',     icono: '◎', disponible: false },

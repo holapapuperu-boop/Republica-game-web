@@ -11,6 +11,7 @@ import { SideNav } from './components/layout/SideNav';
 import { SituacionView } from './views/SituacionView';
 import { PoliticaView } from './views/PoliticaView';
 import { SistemaView } from './views/SistemaView';
+import { MapaView } from './views/MapaView';
 import type { VistaActiva } from './types/uiTypes';
 
 export default function App() {
@@ -51,9 +52,10 @@ export default function App() {
         <main className="flex-1 overflow-hidden bg-surface-900">
           {vista === 'situacion' && <SituacionView />}
           {vista === 'politica' && <PoliticaView />}
+          {vista === 'territorio' && <MapaView />}
           {vista === 'sistema' && <SistemaView />}
           {/* Resto de vistas se implementarán en fases siguientes */}
-          {!['situacion', 'politica', 'sistema'].includes(vista) && (
+          {!['situacion', 'politica', 'territorio', 'sistema'].includes(vista) && (
             <div className="flex items-center justify-center h-full">
               <div className="text-center">
                 <p className="text-text-muted text-sm">

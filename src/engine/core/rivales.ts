@@ -1,13 +1,12 @@
 /**
- * REPÚBLICA — Generador de Partidos Rivales
+ * REPÚBLICA — Partidos Rivales (partidos reales de El Salvador)
  *
- * Crea los partidos rivales (controlados por la IA) al inicio de una nueva
- * partida. Los partidos son ficticios pero con nombres, siglas e ideologías
- * plausibles para el contexto salvadoreño.
+ * Modela los principales partidos políticos históricos y actuales
+ * de El Salvador como rivales controlados por la IA.
  *
  * IMPORTANTE: Este módulo es TypeScript puro, sin React ni acceso a DB.
- * Los nombres, colores e ideologías son completamente ficticios y no
- * representan ni atribuyen posiciones a partidos reales de El Salvador.
+ * Los stats iniciales son aproximaciones para equilibrio de juego,
+ * no reflejan posiciones políticas oficiales de dichos partidos.
  */
 
 import type { Partido } from '../../types/gameTypes';
@@ -16,7 +15,7 @@ import { construirIdeologia } from './ideologia';
 import { generarId } from '../../utils/id';
 
 // ---------------------------------------------------------------------------
-// PLANTILLAS DE PARTIDOS FICTICIOS
+// PLANTILLAS DE PARTIDOS REALES SALVADOREÑOS
 // ---------------------------------------------------------------------------
 
 interface PlantillaPartido {
@@ -30,66 +29,120 @@ interface PlantillaPartido {
   popularidadBase: number;
   organizacionBase: number;
   credibilidadBase: number;
+  comunicacionBase: number;
+  experienciaBase: number;
   fondosBase: number;
   afiliadosBase: number;
 }
 
 const PLANTILLAS_RIVALES: PlantillaPartido[] = [
   {
-    nombre: 'Partido Acción Nacional',
-    siglas: 'PAN',
-    colorPrincipal: '#dc2626',
-    colorSecundario: '#7f1d1d',
-    lema: 'Orden y prosperidad para El Salvador',
-    ejeEconomico: 'liberal',
+    // Alianza Republicana Nacionalista — partido de derecha histórico,
+    // fundado 1981, gobierno 1989–2009.
+    nombre: 'Alianza Republicana Nacionalista',
+    siglas: 'ARENA',
+    colorPrincipal: '#0038a8',   // Azul ARENA
+    colorSecundario: '#cc0000',  // Rojo ARENA
+    lema: 'Patria, libertad, democracia',
+    ejeEconomico: 'ultraliberal',
     ejeSocial: 'conservador',
-    popularidadBase: 35,
-    organizacionBase: 40,
-    credibilidadBase: 30,
-    fondosBase: 180_000,
-    afiliadosBase: 850,
+    popularidadBase: 32,
+    organizacionBase: 50,
+    credibilidadBase: 38,
+    comunicacionBase: 40,
+    experienciaBase: 60,
+    fondosBase: 350_000,
+    afiliadosBase: 3_500,
   },
   {
-    nombre: 'Movimiento Pueblo Unido',
-    siglas: 'MPU',
-    colorPrincipal: '#16a34a',
-    colorSecundario: '#14532d',
-    lema: 'La fuerza está en el pueblo',
+    // Frente Farabundo Martí para la Liberación Nacional — izquierda,
+    // surgido de los Acuerdos de Paz 1992, gobierno 2009–2019.
+    nombre: 'Frente Farabundo Martí para la Liberación Nacional',
+    siglas: 'FMLN',
+    colorPrincipal: '#cc0000',   // Rojo FMLN
+    colorSecundario: '#1a1a1a',  // Negro
+    lema: 'El pueblo unido jamás será vencido',
     ejeEconomico: 'socialdemocrata',
     ejeSocial: 'progresista',
-    popularidadBase: 28,
-    organizacionBase: 32,
-    credibilidadBase: 25,
-    fondosBase: 120_000,
+    popularidadBase: 22,
+    organizacionBase: 42,
+    credibilidadBase: 28,
+    comunicacionBase: 32,
+    experienciaBase: 45,
+    fondosBase: 200_000,
+    afiliadosBase: 2_800,
+  },
+  {
+    // Gran Alianza por la Unidad Nacional — centro-derecha,
+    // surgido de escisiones de ARENA, apoyó a Bukele en 2019.
+    nombre: 'Gran Alianza por la Unidad Nacional',
+    siglas: 'GANA',
+    colorPrincipal: '#f97316',   // Naranja
+    colorSecundario: '#431407',
+    lema: 'Unidad para el progreso',
+    ejeEconomico: 'liberal',
+    ejeSocial: 'conservador',
+    popularidadBase: 18,
+    organizacionBase: 30,
+    credibilidadBase: 22,
+    comunicacionBase: 25,
+    experienciaBase: 25,
+    fondosBase: 150_000,
     afiliadosBase: 1_200,
   },
   {
-    nombre: 'Alianza Democrática Cristiana',
-    siglas: 'ADC',
-    colorPrincipal: '#d97706',
-    colorSecundario: '#78350f',
-    lema: 'Fe, familia y nación',
+    // Partido de Concertación Nacional — histórico partido de derecha,
+    // fundado 1961 (antes PCN), aliado tradicional en coaliciones.
+    nombre: 'Partido de Concertación Nacional',
+    siglas: 'PCN',
+    colorPrincipal: '#16a34a',   // Verde
+    colorSecundario: '#14532d',
+    lema: 'Orden y progreso nacional',
     ejeEconomico: 'centroeconomico',
-    ejeSocial: 'conservador',
-    popularidadBase: 22,
-    organizacionBase: 28,
-    credibilidadBase: 35,
-    fondosBase: 95_000,
-    afiliadosBase: 600,
+    ejeSocial: 'ultraconservador',
+    popularidadBase: 10,
+    organizacionBase: 35,
+    credibilidadBase: 20,
+    comunicacionBase: 18,
+    experienciaBase: 55,
+    fondosBase: 110_000,
+    afiliadosBase: 900,
   },
   {
-    nombre: 'Frente de Renovación Ciudadana',
-    siglas: 'FRC',
-    colorPrincipal: '#7c3aed',
+    // Nuevas Ideas — partido fundado por Nayib Bukele, ganó presidencia 2019,
+    // supermayoría legislativa 2021.
+    nombre: 'Nuevas Ideas',
+    siglas: 'NI',
+    colorPrincipal: '#7c3aed',   // Morado/violeta
     colorSecundario: '#3b0764',
-    lema: 'Un nuevo contrato con el ciudadano',
+    lema: 'El Salvador primero',
+    ejeEconomico: 'centroeconomico',
+    ejeSocial: 'conservador',
+    popularidadBase: 42,
+    organizacionBase: 45,
+    credibilidadBase: 40,
+    comunicacionBase: 55,
+    experienciaBase: 10,
+    fondosBase: 280_000,
+    afiliadosBase: 4_000,
+  },
+  {
+    // Nuestro Tiempo — partido progresista moderno, fundado 2018,
+    // candidatos jóvenes y agenda de transparencia.
+    nombre: 'Nuestro Tiempo',
+    siglas: 'NT',
+    colorPrincipal: '#0ea5e9',   // Azul cielo
+    colorSecundario: '#0c4a6e',
+    lema: 'Transparencia y futuro',
     ejeEconomico: 'centroeconomico',
     ejeSocial: 'progresista',
-    popularidadBase: 18,
-    organizacionBase: 20,
-    credibilidadBase: 20,
-    fondosBase: 75_000,
-    afiliadosBase: 400,
+    popularidadBase: 8,
+    organizacionBase: 15,
+    credibilidadBase: 18,
+    comunicacionBase: 22,
+    experienciaBase: 5,
+    fondosBase: 60_000,
+    afiliadosBase: 350,
   },
 ];
 
@@ -99,14 +152,16 @@ const PLANTILLAS_RIVALES: PlantillaPartido[] = [
 
 /**
  * Genera un array de partidos rivales (IA) para la partida.
- * @param cantidad Cuántos rivales generar (1–4; default 3).
+ * @param cantidad Cuántos rivales generar (1–6; default 4).
  */
-export function generarPartidosRivales(cantidad: number = 3): Partido[] {
+export function generarPartidosRivales(cantidad: number = 4): Partido[] {
   const n = Math.max(1, Math.min(cantidad, PLANTILLAS_RIVALES.length));
-  // Barajar las plantillas para que no siempre sean los mismos
-  const barajadas = [...PLANTILLAS_RIVALES].sort(() => Math.random() - 0.5);
+  // Siempre incluir ARENA, FMLN y NI (los más relevantes); el resto aleatorio
+  const fijos = PLANTILLAS_RIVALES.slice(0, 3);
+  const opcionales = [...PLANTILLAS_RIVALES.slice(3)].sort(() => Math.random() - 0.5);
+  const seleccionados = [...fijos, ...opcionales].slice(0, n);
 
-  return barajadas.slice(0, n).map((tpl) => ({
+  return seleccionados.map((tpl) => ({
     id: generarId('partido'),
     nombre: tpl.nombre,
     siglas: tpl.siglas,
@@ -116,14 +171,14 @@ export function generarPartidosRivales(cantidad: number = 3): Partido[] {
     ideologia: construirIdeologia(tpl.ejeEconomico, tpl.ejeSocial),
     esJugador: false,
 
-    popularidad: tpl.popularidadBase + _variacion(5),
-    organizacion: tpl.organizacionBase + _variacion(5),
-    credibilidad: tpl.credibilidadBase + _variacion(5),
-    comunicacion: 10 + _variacion(8),
-    experienciaElectoral: 15 + _variacion(10),
+    popularidad: Math.max(1, tpl.popularidadBase + _variacion(4)),
+    organizacion: Math.max(1, tpl.organizacionBase + _variacion(5)),
+    credibilidad: Math.max(1, tpl.credibilidadBase + _variacion(4)),
+    comunicacion: Math.max(1, tpl.comunicacionBase + _variacion(5)),
+    experienciaElectoral: Math.max(0, tpl.experienciaBase + _variacion(8)),
 
-    fondos: tpl.fondosBase + _variacion(20_000),
-    afiliados: tpl.afiliadosBase + _variacion(100),
+    fondos: tpl.fondosBase + _variacion(25_000),
+    afiliados: tpl.afiliadosBase + _variacion(150),
 
     accionesEjecutadas: 0,
     turnosDesdeFundacion: 0,
@@ -136,27 +191,20 @@ export function generarPartidosRivales(cantidad: number = 3): Partido[] {
 
 /**
  * Simula el comportamiento mensual de cada partido rival.
- * Aplica cambios modestos a sus atributos para darle vida al sistema político.
- *
- * @param partido - Partido rival (esJugador === false).
- * @returns Partido con atributos actualizados tras un mes de actividad.
  */
 export function turnoRival(partido: Partido): Partido {
-  if (partido.esJugador) return partido; // Nunca tocar el partido del jugador
+  if (partido.esJugador) return partido;
 
-  // Decisión de acción: el rival actúa si tiene fondos suficientes
   const puedeActuar = partido.fondos >= 5_000;
 
   if (!puedeActuar) {
-    // Sin fondos: decaen muy levemente
     return {
       ...partido,
       popularidad: Math.max(0, partido.popularidad - 0.5),
-      fondos: partido.fondos + 3_000, // Recaudación mínima pasiva
+      fondos: partido.fondos + 3_000,
     };
   }
 
-  // Elegir acción aleatoria de un conjunto predefinido
   const acciones = [
     _accionCampana,
     _accionOrganizacion,
@@ -212,7 +260,6 @@ function _accionRecaudacion(p: Partido): Partido {
 // Helper
 // ---------------------------------------------------------------------------
 
-/** Variación aleatoria simétrica: ±max */
 function _variacion(max: number): number {
   return Math.floor((Math.random() * 2 - 1) * max);
 }
