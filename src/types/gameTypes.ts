@@ -90,6 +90,9 @@ export interface Partido {
   // ---- Estadísticas acumuladas ----
   accionesEjecutadas: number;
   turnosDesdeFundacion: number;
+
+  // ---- IA (solo rivales) ----
+  personalidad?: PersonalidadPartido;
 }
 
 // ---------------------------------------------------------------------------
@@ -155,6 +158,11 @@ export interface EstadoPartida {
   // ---- Historial de eventos ----
   eventos: EventoJuego[];
 
+  // ---- Elecciones ----
+  elecciones: Eleccion[];
+  /** Fecha de la próxima elección presidencial */
+  proximaEleccionPresidencial: FechaJuego;
+
   // ---- Metadatos ----
   fechaCreacion: string;     // ISO 8601
   fechaUltimoGuardado: string;
@@ -170,3 +178,75 @@ export interface ResultadoTurno {
   eventosGenerados: EventoJuego[];
   mensajeResumen: string;
 }
+
+// ---------------------------------------------------------------------------
+// ELECCIONES
+// ---------------------------------------------------------------------------
+
+export type TipoEleccion =
+  | 'presidencial'       // Cada 5 años
+  | 'legislativa'        // Cada 3 años (Asamblea)
+  | 'municipal';         // Alcaldías
+
+export interface ResultadoElectoral {
+  partidoId: string;
+  votos: number;        // Votos absolutos simulados
+  porcentaje: number;   // 0–100
+  escanos?: number;     // Para legislativas
+  gano: boolean;
+}
+
+export interface Eleccion {
+  id: string;
+  tipo: TipoEleccion;
+  fecha: FechaJuego;
+  resultados: ResultadoElectoral[];
+  /** Partido ganador (null si aún no se celebró) */
+  ganadorId: string | null;
+  celebrada: boolean;
+}
+
+// ---------------------------------------------------------------------------
+// EVENTOS ALEATORIOS (plantillas del catálogo)
+// ---------------------------------------------------------------------------
+
+export type ImpactoAtributo =
+  | 'popularidad'
+  | 'organizacion'
+  | 'credibilidad'
+  | 'comunicacion'
+  | 'fondos'
+  | 'afiliados';
+
+export type ObjetivoEvento =
+  | 'jugador'       // Solo afecta al jugador
+  | 'lider'         // Afecta al partido más popular
+  | 'todos'         // Afecta a todos los partidos
+  | 'rivales';      // Solo afecta a los rivales
+
+export interface EfectoEvento {
+  atributo: ImpactoAtributo;
+  delta: number;           // Puede ser negativo
+  objetivo: ObjetivoEvento;
+}
+
+export interface PlantillaEvento {
+  id: string;
+  titulo: string;
+  descripcion: string;
+  categoria: CategoriaEvento;
+  probabilidad: number;    // 0–1 por turno
+  efectos: EfectoEvento[];
+  /** Condición para que el evento pueda dispararse (opcional) */
+  condicion?: (estado: EstadoPartida) => boolean;
+}
+
+// ---------------------------------------------------------------------------
+// PERSONALIDAD DE PARTIDO RIVAL (IA)
+// ---------------------------------------------------------------------------
+
+export type PersonalidadPartido =
+  | 'agresivo'       // Ataca al líder, invierte en campaña masiva
+  | 'defensivo'      // Prioriza organización y fondos, evita riesgos
+  | 'oportunista'    // Actúa según el contexto, cambia estrategia
+  | 'populista';     // Maximiza popularidad a toda costa, ignora fondos

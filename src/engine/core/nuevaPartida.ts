@@ -11,6 +11,7 @@ import type { EjeEconomico, EjeSocial } from '../../types/gameTypes';
 import { generarId } from '../../utils/id';
 import { construirIdeologia } from './ideologia';
 import { generarPartidosRivales } from './rivales';
+import { calcularProximaEleccion } from './elecciones';
 
 export interface OpcionesNuevaPartida {
   nombrePartida: string;
@@ -77,7 +78,7 @@ export function crearNuevaPartida(
   const rivales = generarPartidosRivales(opciones.cantidadRivales ?? 3);
 
   const estadoInicial: EstadoPartida = {
-    saveVersion: '1.1.0',
+    saveVersion: '1.2.0',
     partidaId,
     nombrePartida: opciones.nombrePartida,
 
@@ -113,6 +114,10 @@ export function crearNuevaPartida(
         esFicticio: true,
       },
     ],
+
+    // ---- Elecciones (Fase 4) ----
+    elecciones: [],
+    proximaEleccionPresidencial: calcularProximaEleccion(fechaInicio),
 
     fechaCreacion: ahora,
     fechaUltimoGuardado: ahora,

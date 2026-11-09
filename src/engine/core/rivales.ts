@@ -1,21 +1,29 @@
 /**
- * REPÚBLICA — Partidos Rivales (partidos reales de El Salvador)
+ * REPÚBLICA — Partidos Rivales con IA Estratégica
  *
- * Modela los principales partidos políticos históricos y actuales
- * de El Salvador como rivales controlados por la IA.
+ * Partidos reales de El Salvador con personalidades distintas que
+ * determinan su comportamiento en cada turno:
  *
- * IMPORTANTE: Este módulo es TypeScript puro, sin React ni acceso a DB.
- * Los stats iniciales son aproximaciones para equilibrio de juego,
- * no reflejan posiciones políticas oficiales de dichos partidos.
+ *  agresivo   → ataca al líder cuando va atrás, campaña masiva
+ *  defensivo  → prioriza organización y fondos, evita riesgos
+ *  oportunista → reacciona al contexto, cambia estrategia según posición
+ *  populista  → maximiza popularidad a toda costa, ignora fondos
+ *
+ * TypeScript puro — sin React, sin DB.
  */
 
-import type { Partido } from '../../types/gameTypes';
-import type { EjeEconomico, EjeSocial } from '../../types/gameTypes';
+import type {
+  Partido,
+  EjeEconomico,
+  EjeSocial,
+  PersonalidadPartido,
+  EstadoPartida,
+} from '../../types/gameTypes';
 import { construirIdeologia } from './ideologia';
 import { generarId } from '../../utils/id';
 
 // ---------------------------------------------------------------------------
-// PLANTILLAS DE PARTIDOS REALES SALVADOREÑOS
+// PLANTILLAS
 // ---------------------------------------------------------------------------
 
 interface PlantillaPartido {
@@ -26,6 +34,7 @@ interface PlantillaPartido {
   lema: string;
   ejeEconomico: EjeEconomico;
   ejeSocial: EjeSocial;
+  personalidad: PersonalidadPartido;
   popularidadBase: number;
   organizacionBase: number;
   credibilidadBase: number;
@@ -37,15 +46,14 @@ interface PlantillaPartido {
 
 const PLANTILLAS_RIVALES: PlantillaPartido[] = [
   {
-    // Alianza Republicana Nacionalista — partido de derecha histórico,
-    // fundado 1981, gobierno 1989–2009.
     nombre: 'Alianza Republicana Nacionalista',
     siglas: 'ARENA',
-    colorPrincipal: '#0038a8',   // Azul ARENA
-    colorSecundario: '#cc0000',  // Rojo ARENA
+    colorPrincipal: '#0038a8',
+    colorSecundario: '#cc0000',
     lema: 'Patria, libertad, democracia',
     ejeEconomico: 'ultraliberal',
     ejeSocial: 'conservador',
+    personalidad: 'agresivo',      // Histórico partido de poder — ataca al lider
     popularidadBase: 32,
     organizacionBase: 50,
     credibilidadBase: 38,
@@ -55,15 +63,14 @@ const PLANTILLAS_RIVALES: PlantillaPartido[] = [
     afiliadosBase: 3_500,
   },
   {
-    // Frente Farabundo Martí para la Liberación Nacional — izquierda,
-    // surgido de los Acuerdos de Paz 1992, gobierno 2009–2019.
     nombre: 'Frente Farabundo Martí para la Liberación Nacional',
     siglas: 'FMLN',
-    colorPrincipal: '#cc0000',   // Rojo FMLN
-    colorSecundario: '#1a1a1a',  // Negro
+    colorPrincipal: '#cc0000',
+    colorSecundario: '#1a1a1a',
     lema: 'El pueblo unido jamás será vencido',
     ejeEconomico: 'socialdemocrata',
     ejeSocial: 'progresista',
+    personalidad: 'defensivo',     // Reconstruye desde la base tras 2019
     popularidadBase: 22,
     organizacionBase: 42,
     credibilidadBase: 28,
@@ -73,15 +80,14 @@ const PLANTILLAS_RIVALES: PlantillaPartido[] = [
     afiliadosBase: 2_800,
   },
   {
-    // Gran Alianza por la Unidad Nacional — centro-derecha,
-    // surgido de escisiones de ARENA, apoyó a Bukele en 2019.
     nombre: 'Gran Alianza por la Unidad Nacional',
     siglas: 'GANA',
-    colorPrincipal: '#f97316',   // Naranja
+    colorPrincipal: '#f97316',
     colorSecundario: '#431407',
     lema: 'Unidad para el progreso',
     ejeEconomico: 'liberal',
     ejeSocial: 'conservador',
+    personalidad: 'oportunista',   // Busca alianzas y ventanas de oportunidad
     popularidadBase: 18,
     organizacionBase: 30,
     credibilidadBase: 22,
@@ -91,15 +97,14 @@ const PLANTILLAS_RIVALES: PlantillaPartido[] = [
     afiliadosBase: 1_200,
   },
   {
-    // Partido de Concertación Nacional — histórico partido de derecha,
-    // fundado 1961 (antes PCN), aliado tradicional en coaliciones.
     nombre: 'Partido de Concertación Nacional',
     siglas: 'PCN',
-    colorPrincipal: '#16a34a',   // Verde
+    colorPrincipal: '#16a34a',
     colorSecundario: '#14532d',
     lema: 'Orden y progreso nacional',
     ejeEconomico: 'centroeconomico',
     ejeSocial: 'ultraconservador',
+    personalidad: 'defensivo',     // Partido histórico — sobrevive consolidando
     popularidadBase: 10,
     organizacionBase: 35,
     credibilidadBase: 20,
@@ -109,15 +114,14 @@ const PLANTILLAS_RIVALES: PlantillaPartido[] = [
     afiliadosBase: 900,
   },
   {
-    // Nuevas Ideas — partido fundado por Nayib Bukele, ganó presidencia 2019,
-    // supermayoría legislativa 2021.
     nombre: 'Nuevas Ideas',
     siglas: 'NI',
-    colorPrincipal: '#7c3aed',   // Morado/violeta
+    colorPrincipal: '#7c3aed',
     colorSecundario: '#3b0764',
     lema: 'El Salvador primero',
     ejeEconomico: 'centroeconomico',
     ejeSocial: 'conservador',
+    personalidad: 'populista',     // Domina las redes, maximiza popularidad
     popularidadBase: 42,
     organizacionBase: 45,
     credibilidadBase: 40,
@@ -127,15 +131,14 @@ const PLANTILLAS_RIVALES: PlantillaPartido[] = [
     afiliadosBase: 4_000,
   },
   {
-    // Nuestro Tiempo — partido progresista moderno, fundado 2018,
-    // candidatos jóvenes y agenda de transparencia.
     nombre: 'Nuestro Tiempo',
     siglas: 'NT',
-    colorPrincipal: '#0ea5e9',   // Azul cielo
+    colorPrincipal: '#0ea5e9',
     colorSecundario: '#0c4a6e',
     lema: 'Transparencia y futuro',
     ejeEconomico: 'centroeconomico',
     ejeSocial: 'progresista',
+    personalidad: 'oportunista',   // Partido joven — crece atacando escándalos
     popularidadBase: 8,
     organizacionBase: 15,
     credibilidadBase: 18,
@@ -147,17 +150,12 @@ const PLANTILLAS_RIVALES: PlantillaPartido[] = [
 ];
 
 // ---------------------------------------------------------------------------
-// FUNCIÓN PRINCIPAL
+// GENERACIÓN
 // ---------------------------------------------------------------------------
 
-/**
- * Genera un array de partidos rivales (IA) para la partida.
- * @param cantidad Cuántos rivales generar (1–6; default 4).
- */
 export function generarPartidosRivales(cantidad: number = 4): Partido[] {
   const n = Math.max(1, Math.min(cantidad, PLANTILLAS_RIVALES.length));
-  // Siempre incluir ARENA, FMLN y NI (los más relevantes); el resto aleatorio
-  const fijos = PLANTILLAS_RIVALES.slice(0, 3);
+  const fijos = PLANTILLAS_RIVALES.slice(0, 3);                          // ARENA, FMLN, NI siempre
   const opcionales = [...PLANTILLAS_RIVALES.slice(3)].sort(() => Math.random() - 0.5);
   const seleccionados = [...fijos, ...opcionales].slice(0, n);
 
@@ -170,34 +168,36 @@ export function generarPartidosRivales(cantidad: number = 4): Partido[] {
     lema: tpl.lema,
     ideologia: construirIdeologia(tpl.ejeEconomico, tpl.ejeSocial),
     esJugador: false,
+    personalidad: tpl.personalidad,
 
-    popularidad: Math.max(1, tpl.popularidadBase + _variacion(4)),
-    organizacion: Math.max(1, tpl.organizacionBase + _variacion(5)),
-    credibilidad: Math.max(1, tpl.credibilidadBase + _variacion(4)),
-    comunicacion: Math.max(1, tpl.comunicacionBase + _variacion(5)),
+    popularidad:         Math.max(1, tpl.popularidadBase + _variacion(4)),
+    organizacion:        Math.max(1, tpl.organizacionBase + _variacion(5)),
+    credibilidad:        Math.max(1, tpl.credibilidadBase + _variacion(4)),
+    comunicacion:        Math.max(1, tpl.comunicacionBase + _variacion(5)),
     experienciaElectoral: Math.max(0, tpl.experienciaBase + _variacion(8)),
 
-    fondos: tpl.fondosBase + _variacion(25_000),
+    fondos:   tpl.fondosBase + _variacion(25_000),
     afiliados: tpl.afiliadosBase + _variacion(150),
 
-    accionesEjecutadas: 0,
+    accionesEjecutadas:   0,
     turnosDesdeFundacion: 0,
   }));
 }
 
 // ---------------------------------------------------------------------------
-// IA: acción automática por turno
+// IA ESTRATÉGICA POR TURNO
 // ---------------------------------------------------------------------------
 
 /**
- * Simula el comportamiento mensual de cada partido rival.
+ * Ejecuta el turno de un partido rival según su personalidad y contexto.
+ * @param partido  El partido rival a procesar
+ * @param estado   Estado actual para contexto (posición relativa, etc.)
  */
-export function turnoRival(partido: Partido): Partido {
+export function turnoRival(partido: Partido, estado?: EstadoPartida): Partido {
   if (partido.esJugador) return partido;
 
-  const puedeActuar = partido.fondos >= 5_000;
-
-  if (!puedeActuar) {
+  // Sin fondos — recaudación de emergencia
+  if (partido.fondos < 5_000) {
     return {
       ...partido,
       popularidad: Math.max(0, partido.popularidad - 0.5),
@@ -205,48 +205,120 @@ export function turnoRival(partido: Partido): Partido {
     };
   }
 
-  const acciones = [
-    _accionCampana,
-    _accionOrganizacion,
-    _accionComunicacion,
-    _accionRecaudacion,
-  ];
-  const accion = acciones[Math.floor(Math.random() * acciones.length)];
-  return accion(partido);
+  const personalidad = partido.personalidad ?? 'oportunista';
+  const jugador = estado?.partidos.find((p) => p.esJugador);
+  const posicionRival = estado
+    ? [...estado.partidos].sort((a, b) => b.popularidad - a.popularidad)
+        .findIndex((p) => p.id === partido.id)
+    : 2;
+  const estaDetras = jugador ? partido.popularidad < jugador.popularidad : true;
+  const jugadorEsLider = jugador
+    ? [...(estado?.partidos ?? [])].sort((a, b) => b.popularidad - a.popularidad)[0]?.id === jugador.id
+    : false;
+
+  switch (personalidad) {
+    case 'agresivo':
+      return _iaAgresivo(partido, estaDetras, jugadorEsLider);
+
+    case 'defensivo':
+      return _iaDefensivo(partido);
+
+    case 'oportunista':
+      return _iaOportunista(partido, posicionRival, estaDetras);
+
+    case 'populista':
+      return _iaPopulista(partido);
+
+    default:
+      return _accionRecaudacion(partido);
+  }
 }
 
 // ---------------------------------------------------------------------------
-// Acciones internas de la IA
+// Comportamientos por personalidad
 // ---------------------------------------------------------------------------
 
-function _accionCampana(p: Partido): Partido {
+/** AGRESIVO: si va atrás, campaña masiva; si lidera, consolida organización */
+function _iaAgresivo(partido: Partido, estaDetras: boolean, jugadorEsLider: boolean): Partido {
+  if (estaDetras && jugadorEsLider) {
+    // Ataque: campaña negativa simulada → sube su popularidad más de lo normal
+    return {
+      ...partido,
+      popularidad: Math.min(100, partido.popularidad + 2.5 + partido.comunicacion * 0.04),
+      credibilidad: Math.max(0, partido.credibilidad - 1), // coste reputacional del ataque
+      fondos: partido.fondos - 8_000,
+      accionesEjecutadas: partido.accionesEjecutadas + 1,
+    };
+  }
+  // Lidera — consolida
   return {
-    ...p,
-    popularidad: Math.min(100, p.popularidad + 1 + p.comunicacion * 0.03),
-    fondos: p.fondos - 5_000,
-    accionesEjecutadas: p.accionesEjecutadas + 1,
+    ...partido,
+    organizacion: Math.min(100, partido.organizacion + 2),
+    fondos: partido.fondos - 4_000,
+    accionesEjecutadas: partido.accionesEjecutadas + 1,
   };
 }
 
-function _accionOrganizacion(p: Partido): Partido {
+/** DEFENSIVO: alterna entre organización interna y recaudación de fondos */
+function _iaDefensivo(partido: Partido): Partido {
+  const fondosBajos = partido.fondos < 80_000;
+  if (fondosBajos) {
+    return _accionRecaudacion(partido);
+  }
   return {
-    ...p,
-    organizacion: Math.min(100, p.organizacion + 1.5),
-    afiliados: p.afiliados + Math.floor(5 + p.organizacion * 0.1),
-    fondos: p.fondos - 3_000,
-    accionesEjecutadas: p.accionesEjecutadas + 1,
+    ...partido,
+    organizacion:  Math.min(100, partido.organizacion + 2),
+    credibilidad:  Math.min(100, partido.credibilidad + 1),
+    afiliados:     partido.afiliados + Math.floor(5 + partido.organizacion * 0.08),
+    fondos:        partido.fondos - 3_000,
+    accionesEjecutadas: partido.accionesEjecutadas + 1,
   };
 }
 
-function _accionComunicacion(p: Partido): Partido {
+/** OPORTUNISTA: si va 1°–2° consolida; si va 3°+ ataca; si fondos bajos recauda */
+function _iaOportunista(partido: Partido, posicion: number, estaDetras: boolean): Partido {
+  if (partido.fondos < 40_000) return _accionRecaudacion(partido);
+
+  if (posicion <= 1) {
+    // Líder o segundo — mantener posición con comunicación
+    return {
+      ...partido,
+      comunicacion: Math.min(100, partido.comunicacion + 1.5),
+      popularidad:  Math.min(100, partido.popularidad + 1),
+      fondos:       partido.fondos - 5_000,
+      accionesEjecutadas: partido.accionesEjecutadas + 1,
+    };
+  }
+
+  if (estaDetras) {
+    // Va atrás — push de popularidad apostando todo
+    return {
+      ...partido,
+      popularidad:  Math.min(100, partido.popularidad + 2 + partido.comunicacion * 0.03),
+      fondos:       partido.fondos - 7_000,
+      accionesEjecutadas: partido.accionesEjecutadas + 1,
+    };
+  }
+
+  return _accionRecaudacion(partido);
+}
+
+/** POPULISTA: siempre maximiza popularidad; ignora organización */
+function _iaPopulista(partido: Partido): Partido {
+  if (partido.fondos < 20_000) return _accionRecaudacion(partido);
+
   return {
-    ...p,
-    comunicacion: Math.min(100, p.comunicacion + 1),
-    credibilidad: Math.min(100, p.credibilidad + 0.5),
-    fondos: p.fondos - 4_000,
-    accionesEjecutadas: p.accionesEjecutadas + 1,
+    ...partido,
+    popularidad:  Math.min(100, partido.popularidad + 3 + partido.comunicacion * 0.05),
+    comunicacion: Math.min(100, partido.comunicacion + 1),
+    fondos:       partido.fondos - 10_000, // gasta más que el resto
+    accionesEjecutadas: partido.accionesEjecutadas + 1,
   };
 }
+
+// ---------------------------------------------------------------------------
+// Acciones atómicas reutilizables
+// ---------------------------------------------------------------------------
 
 function _accionRecaudacion(p: Partido): Partido {
   return {
