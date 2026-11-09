@@ -7,7 +7,10 @@
  */
 
 import type { EstadoPartida, Partido, FechaJuego } from '../../types/gameTypes';
+import type { EjeEconomico, EjeSocial } from '../../types/gameTypes';
 import { generarId } from '../../utils/id';
+import { construirIdeologia } from './ideologia';
+import { generarPartidosRivales } from './rivales';
 
 export interface OpcionesNuevaPartida {
   nombrePartida: string;
@@ -16,8 +19,14 @@ export interface OpcionesNuevaPartida {
   colorPrincipal: string;
   colorSecundario: string;
   lema: string;
+  /** Posición en el eje económico (default: centroeconomico) */
+  ejeEconomico?: EjeEconomico;
+  /** Posición en el eje social (default: centrista) */
+  ejeSocial?: EjeSocial;
   /** Fecha de inicio del escenario */
   fechaInicio?: FechaJuego;
+  /** Cuántos partidos rivales generar (default: 3) */
+  cantidadRivales?: number;
 }
 
 /**
@@ -37,6 +46,9 @@ export function crearNuevaPartida(
     mes: 1,
   };
 
+  const ejeEconomico: EjeEconomico = opciones.ejeEconomico ?? 'centroeconomico';
+  const ejeSocial: EjeSocial = opciones.ejeSocial ?? 'centrista';
+
   const partidoJugador: Partido = {
     id: partidoId,
     nombre: opciones.nombrePartido,
@@ -44,11 +56,7 @@ export function crearNuevaPartida(
     colorPrincipal: opciones.colorPrincipal,
     colorSecundario: opciones.colorSecundario,
     lema: opciones.lema,
-    ideologia: {
-      ejeEconomico: 'centroeconomico',
-      ejeSocial: 'centrista',
-      etiqueta: 'Centro',
-    },
+    ideologia: construirIdeologia(ejeEconomico, ejeSocial),
     esJugador: true,
 
     // Atributos iniciales bajos: hay que construir el partido
@@ -65,8 +73,11 @@ export function crearNuevaPartida(
     turnosDesdeFundacion: 0,
   };
 
+  // Generar partidos rivales controlados por la IA
+  const rivales = generarPartidosRivales(opciones.cantidadRivales ?? 3);
+
   const estadoInicial: EstadoPartida = {
-    saveVersion: '1.0.0',
+    saveVersion: '1.1.0',
     partidaId,
     nombrePartida: opciones.nombrePartida,
 
@@ -76,7 +87,7 @@ export function crearNuevaPartida(
     regimen: 'democracia',
     etapa: 'organización',
 
-    partidos: [partidoJugador],
+    partidos: [partidoJugador, ...rivales],
     partidoJugadorId: partidoId,
 
     recursos: {
@@ -90,6 +101,14 @@ export function crearNuevaPartida(
         fecha: fechaInicio,
         titulo: 'Fundación del partido',
         descripcion: `${opciones.nombrePartido} inicia su actividad política con un pequeño grupo fundador. El camino hacia la presidencia apenas comienza.`,
+        categoria: 'politico',
+        esFicticio: true,
+      },
+      {
+        id: generarId('evt'),
+        fecha: fechaInicio,
+        titulo: 'Escenario político inicial',
+        descripcion: `${rivales.length} partidos compiten por la influencia nacional. La contienda política acaba de comenzar.`,
         categoria: 'politico',
         esFicticio: true,
       },

@@ -4,7 +4,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { useGameStore } from '../../store/gameStore';
+import { useGameStore } from '../store/gameStore';
 import {
   listarPartidas,
   cargarPartida,
@@ -12,7 +12,7 @@ import {
   exportarPartida,
   importarPartida,
   type RegistroPartida,
-} from '../../persistence/db';
+} from '../persistence/db';
 
 export const SistemaView: React.FC = () => {
   const partida = useGameStore((s) => s.partida);

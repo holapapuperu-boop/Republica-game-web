@@ -10,6 +10,12 @@ import { useGameStore } from '../store/gameStore';
 import { crearNuevaPartida } from '../engine/core/nuevaPartida';
 import { listarPartidas, cargarPartida, type RegistroPartida } from '../persistence/db';
 import { guardarPartida } from '../persistence/db';
+import {
+  OPCIONES_EJE_ECONOMICO,
+  OPCIONES_EJE_SOCIAL,
+  construirIdeologia,
+} from '../engine/core/ideologia';
+import type { EjeEconomico, EjeSocial } from '../types/gameTypes';
 
 type Pantalla = 'menu' | 'nueva_partida' | 'cargar';
 
@@ -26,6 +32,8 @@ export const MainMenu: React.FC = () => {
     colorPrincipal: '#3b82f6',
     colorSecundario: '#1e3a5f',
     lema: '',
+    ejeEconomico: 'centroeconomico' as EjeEconomico,
+    ejeSocial: 'centrista' as EjeSocial,
   });
   const [errorForm, setErrorForm] = useState<string | null>(null);
 
@@ -34,6 +42,8 @@ export const MainMenu: React.FC = () => {
       listarPartidas().then(setPartidas).catch(console.error);
     }
   }, [pantalla]);
+
+  const ideologiaActual = construirIdeologia(form.ejeEconomico, form.ejeSocial);
 
   const handleCrear = async () => {
     if (!form.nombrePartido.trim()) {
@@ -60,6 +70,8 @@ export const MainMenu: React.FC = () => {
       colorPrincipal: form.colorPrincipal,
       colorSecundario: form.colorSecundario,
       lema: form.lema.trim(),
+      ejeEconomico: form.ejeEconomico,
+      ejeSocial: form.ejeSocial,
     });
 
     await guardarPartida(nuevoEstado);
@@ -74,7 +86,7 @@ export const MainMenu: React.FC = () => {
   if (pantalla === 'nueva_partida') {
     return (
       <div className="min-h-screen bg-surface-900 flex items-center justify-center p-6">
-        <div className="w-full max-w-lg bg-surface-800 border border-surface-500 rounded-lg p-6">
+        <div className="w-full max-w-xl bg-surface-800 border border-surface-500 rounded-lg p-6">
           <button
             onClick={() => setPantalla('menu')}
             className="text-text-muted text-xs mb-4 hover:text-text-secondary"
@@ -91,6 +103,7 @@ export const MainMenu: React.FC = () => {
           )}
 
           <div className="space-y-4">
+            {/* ---- Datos básicos ---- */}
             <FormField
               label="Nombre de la partida"
               hint="Solo para identificar tu guardado"
@@ -112,25 +125,28 @@ export const MainMenu: React.FC = () => {
               />
             </FormField>
 
-            <FormField label="Siglas" hint="Máximo 8 caracteres">
-              <input
-                className="form-input uppercase"
-                value={form.siglasPartido}
-                maxLength={8}
-                onChange={(e) => { setErrorForm(null); setForm({ ...form, siglasPartido: e.target.value.toUpperCase() }); }}
-                placeholder="PAC"
-              />
-            </FormField>
+            <div className="grid grid-cols-2 gap-3">
+              <FormField label="Siglas" hint="Máx. 8 caracteres">
+                <input
+                  className="form-input uppercase"
+                  value={form.siglasPartido}
+                  maxLength={8}
+                  onChange={(e) => { setErrorForm(null); setForm({ ...form, siglasPartido: e.target.value.toUpperCase() }); }}
+                  placeholder="PAC"
+                />
+              </FormField>
 
-            <FormField label="Lema del Partido">
-              <input
-                className="form-input"
-                value={form.lema}
-                onChange={(e) => { setErrorForm(null); setForm({ ...form, lema: e.target.value }); }}
-                placeholder="Por una nueva El Salvador"
-              />
-            </FormField>
+              <FormField label="Lema del Partido">
+                <input
+                  className="form-input"
+                  value={form.lema}
+                  onChange={(e) => { setErrorForm(null); setForm({ ...form, lema: e.target.value }); }}
+                  placeholder="Por una nueva El Salvador"
+                />
+              </FormField>
+            </div>
 
+            {/* ---- Colores ---- */}
             <div className="grid grid-cols-2 gap-3">
               <FormField label="Color principal">
                 <div className="flex items-center gap-2">
@@ -156,7 +172,62 @@ export const MainMenu: React.FC = () => {
               </FormField>
             </div>
 
-            {/* Vista previa del partido */}
+            {/* ---- Ideología ---- */}
+            <div className="border border-surface-500 rounded p-3 space-y-3">
+              <p className="text-text-secondary text-xs font-medium uppercase tracking-widest">
+                Posición Ideológica
+              </p>
+
+              <FormField label="Eje Económico">
+                <div className="grid grid-cols-5 gap-1">
+                  {OPCIONES_EJE_ECONOMICO.map((op) => (
+                    <button
+                      key={op.valor}
+                      type="button"
+                      title={op.descripcion}
+                      onClick={() => setForm({ ...form, ejeEconomico: op.valor })}
+                      className={`
+                        py-1.5 px-1 text-xxs rounded text-center transition-colors
+                        ${form.ejeEconomico === op.valor
+                          ? 'bg-accent text-white font-semibold'
+                          : 'bg-surface-700 text-text-muted hover:bg-surface-600 hover:text-text-secondary border border-surface-500'}
+                      `}
+                    >
+                      {op.etiqueta}
+                    </button>
+                  ))}
+                </div>
+                <p className="text-text-muted text-xxs mt-1">
+                  {OPCIONES_EJE_ECONOMICO.find(o => o.valor === form.ejeEconomico)?.descripcion}
+                </p>
+              </FormField>
+
+              <FormField label="Eje Social">
+                <div className="grid grid-cols-5 gap-1">
+                  {OPCIONES_EJE_SOCIAL.map((op) => (
+                    <button
+                      key={op.valor}
+                      type="button"
+                      title={op.descripcion}
+                      onClick={() => setForm({ ...form, ejeSocial: op.valor })}
+                      className={`
+                        py-1.5 px-1 text-xxs rounded text-center transition-colors
+                        ${form.ejeSocial === op.valor
+                          ? 'bg-accent text-white font-semibold'
+                          : 'bg-surface-700 text-text-muted hover:bg-surface-600 hover:text-text-secondary border border-surface-500'}
+                      `}
+                    >
+                      {op.etiqueta}
+                    </button>
+                  ))}
+                </div>
+                <p className="text-text-muted text-xxs mt-1">
+                  {OPCIONES_EJE_SOCIAL.find(o => o.valor === form.ejeSocial)?.descripcion}
+                </p>
+              </FormField>
+            </div>
+
+            {/* ---- Vista previa del partido ---- */}
             <div
               className="border rounded p-3 mt-2"
               style={{ borderColor: form.colorPrincipal + '80' }}
@@ -169,7 +240,10 @@ export const MainMenu: React.FC = () => {
                 {form.siglasPartido || 'SIGLAS'}
               </p>
               <p className="text-text-secondary text-xs">{form.nombrePartido || 'Nombre del Partido'}</p>
-              <p className="text-text-muted text-xxs italic">"{form.lema || 'Lema del partido'}"</p>
+              <p className="text-text-muted text-xxs italic mb-1">"{form.lema || 'Lema del partido'}"</p>
+              <span className="text-xxs px-1.5 py-0.5 rounded bg-surface-600 text-text-secondary">
+                {ideologiaActual.etiqueta}
+              </span>
             </div>
 
             <button
@@ -237,7 +311,7 @@ export const MainMenu: React.FC = () => {
           Simulador político de El Salvador
         </p>
         <p className="text-text-muted text-xxs mt-1 font-mono">
-          v0.1.0 · Fase 0-1
+          v0.2.0 · Fase 2
         </p>
       </div>
 

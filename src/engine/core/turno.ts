@@ -16,6 +16,7 @@ import type {
 } from '../../types/gameTypes';
 import { avanzarUnMes } from './fecha';
 import { generarId } from '../../utils/id';
+import { turnoRival } from './rivales';
 
 // ---------------------------------------------------------------------------
 // CONSTANTES DE BALANCE
@@ -52,16 +53,27 @@ export function procesarTurno(estado: EstadoPartida): ResultadoTurno {
   const nuevaFecha = avanzarUnMes(estado.fechaActual);
   const nuevoTurno = estado.turnoActual + 1;
 
-  // 1. Actualizar partidos: aplicar decaimiento natural de popularidad
+  // 1. Actualizar partidos:
+  //    - Al jugador: solo incrementar turnosDesdeFundacion (sus acciones las ejecuta él)
+  //    - A los rivales: aplicar lógica de IA + decaimiento natural si no actúan
   const partidosActualizados = estado.partidos.map((partido) => {
+    if (partido.esJugador) {
+      return {
+        ...partido,
+        turnosDesdeFundacion: partido.turnosDesdeFundacion + 1,
+      };
+    }
+    // Rival: ejecutar su acción mensual automática
+    const rivalActualizado = turnoRival(partido);
+    // Decaimiento de popularidad base si no creció
     const nuevaPopularidad = Math.max(
       0,
-      partido.popularidad - (partido.esJugador ? 0 : DECAIMIENTO_POPULARIDAD_BASE)
+      rivalActualizado.popularidad - DECAIMIENTO_POPULARIDAD_BASE
     );
     return {
-      ...partido,
+      ...rivalActualizado,
       popularidad: parseFloat(nuevaPopularidad.toFixed(2)),
-      turnosDesdeFundacion: partido.turnosDesdeFundacion + 1,
+      turnosDesdeFundacion: rivalActualizado.turnosDesdeFundacion + 1,
     };
   });
 

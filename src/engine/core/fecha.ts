@@ -6,7 +6,7 @@
  * devuelven el mismo output. Fáciles de probar con Vitest.
  */
 
-import type { FechaJuego, Mes } from '../types/gameTypes';
+import type { FechaJuego, Mes } from '../../types/gameTypes';
 
 /** Avanza una fecha exactamente un mes. Diciembre → Enero del año siguiente. */
 export function avanzarUnMes(fecha: FechaJuego): FechaJuego {
