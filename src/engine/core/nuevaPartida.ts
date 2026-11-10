@@ -62,6 +62,7 @@ export function crearNuevaPartida(
 
     // Atributos iniciales bajos: hay que construir el partido
     popularidad: 10,
+    influenciaNacional: 2,
     organizacion: 5,
     credibilidad: 15,
     comunicacion: 5,
@@ -75,7 +76,7 @@ export function crearNuevaPartida(
   };
 
   // Generar partidos rivales controlados por la IA
-  const rivales = generarPartidosRivales(opciones.cantidadRivales ?? 3);
+  const rivales = generarPartidosRivales(opciones.cantidadRivales);
 
   const estadoInicial: EstadoPartida = {
     saveVersion: '1.2.0',

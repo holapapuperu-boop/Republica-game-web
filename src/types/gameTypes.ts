@@ -78,6 +78,8 @@ export interface Partido {
 
   // ---- Atributos (todos 0–100 salvo recursos) ----
   popularidad: number;       // Reconocimiento público general
+  /** Capacidad de control territorial a escala nacional (0–100). */
+  influenciaNacional?: number;
   organizacion: number;      // Capacidad organizativa y estructura interna
   credibilidad: number;      // Confianza ciudadana
   comunicacion: number;      // Capacidad mediática y de campaña

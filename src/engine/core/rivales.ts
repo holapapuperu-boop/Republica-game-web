@@ -1,30 +1,14 @@
 /**
- * REPÚBLICA — Partidos Rivales con IA Estratégica
+ * Partidos del escenario El Salvador 2024.
  *
- * Partidos reales de El Salvador con personalidades distintas que
- * determinan su comportamiento en cada turno:
- *
- *  agresivo   → ataca al líder cuando va atrás, campaña masiva
- *  defensivo  → prioriza organización y fondos, evita riesgos
- *  oportunista → reacciona al contexto, cambia estrategia según posición
- *  populista  → maximiza popularidad a toda costa, ignora fondos
- *
- * TypeScript puro — sin React, sin DB.
+ * Las cifras de atributos son parámetros de balance, no son encuestas ni
+ * registros de afiliación. La jerarquía inicial se calibra con el resultado
+ * legislativo oficial de 2024: NI obtuvo 54 de los 60 escaños.
  */
 
-import type {
-  Partido,
-  EjeEconomico,
-  EjeSocial,
-  PersonalidadPartido,
-  EstadoPartida,
-} from '../../types/gameTypes';
+import type { Partido, EjeEconomico, EjeSocial, PersonalidadPartido, EstadoPartida } from '../../types/gameTypes';
 import { construirIdeologia } from './ideologia';
 import { generarId } from '../../utils/id';
-
-// ---------------------------------------------------------------------------
-// PLANTILLAS
-// ---------------------------------------------------------------------------
 
 interface PlantillaPartido {
   nombre: string;
@@ -36,6 +20,7 @@ interface PlantillaPartido {
   ejeSocial: EjeSocial;
   personalidad: PersonalidadPartido;
   popularidadBase: number;
+  influenciaNacionalBase: number;
   organizacionBase: number;
   credibilidadBase: number;
   comunicacionBase: number;
@@ -46,292 +31,108 @@ interface PlantillaPartido {
 
 const PLANTILLAS_RIVALES: PlantillaPartido[] = [
   {
-    nombre: 'Alianza Republicana Nacionalista',
-    siglas: 'ARENA',
-    colorPrincipal: '#0038a8',
-    colorSecundario: '#cc0000',
-    lema: 'Patria, libertad, democracia',
-    ejeEconomico: 'ultraliberal',
-    ejeSocial: 'conservador',
-    personalidad: 'agresivo',      // Histórico partido de poder — ataca al lider
-    popularidadBase: 32,
-    organizacionBase: 50,
-    credibilidadBase: 38,
-    comunicacionBase: 40,
-    experienciaBase: 60,
-    fondosBase: 350_000,
-    afiliadosBase: 3_500,
+    nombre: 'Nuevas Ideas', siglas: 'NI', colorPrincipal: '#00ABED', colorSecundario: '#003B5C',
+    lema: 'El Salvador primero', ejeEconomico: 'centroeconomico', ejeSocial: 'conservador', personalidad: 'populista',
+    popularidadBase: 85, influenciaNacionalBase: 88, organizacionBase: 78, credibilidadBase: 72, comunicacionBase: 88,
+    experienciaBase: 48, fondosBase: 800_000, afiliadosBase: 10_000,
   },
   {
-    nombre: 'Frente Farabundo Martí para la Liberación Nacional',
-    siglas: 'FMLN',
-    colorPrincipal: '#cc0000',
-    colorSecundario: '#1a1a1a',
-    lema: 'El pueblo unido jamás será vencido',
-    ejeEconomico: 'socialdemocrata',
-    ejeSocial: 'progresista',
-    personalidad: 'defensivo',     // Reconstruye desde la base tras 2019
-    popularidadBase: 22,
-    organizacionBase: 42,
-    credibilidadBase: 28,
-    comunicacionBase: 32,
-    experienciaBase: 45,
-    fondosBase: 200_000,
-    afiliadosBase: 2_800,
+    nombre: 'Alianza Republicana Nacionalista', siglas: 'ARENA', colorPrincipal: '#08088A', colorSecundario: '#FFFFFF',
+    lema: 'Patria, libertad, democracia', ejeEconomico: 'ultraliberal', ejeSocial: 'conservador', personalidad: 'agresivo',
+    popularidadBase: 24, influenciaNacionalBase: 20, organizacionBase: 52, credibilidadBase: 32, comunicacionBase: 38,
+    experienciaBase: 68, fondosBase: 260_000, afiliadosBase: 3_500,
   },
   {
-    nombre: 'Gran Alianza por la Unidad Nacional',
-    siglas: 'GANA',
-    colorPrincipal: '#f97316',
-    colorSecundario: '#431407',
-    lema: 'Unidad para el progreso',
-    ejeEconomico: 'liberal',
-    ejeSocial: 'conservador',
-    personalidad: 'oportunista',   // Busca alianzas y ventanas de oportunidad
-    popularidadBase: 18,
-    organizacionBase: 30,
-    credibilidadBase: 22,
-    comunicacionBase: 25,
-    experienciaBase: 25,
-    fondosBase: 150_000,
-    afiliadosBase: 1_200,
+    nombre: 'Frente Farabundo Martí para la Liberación Nacional', siglas: 'FMLN', colorPrincipal: '#CC0000', colorSecundario: '#1A1A1A',
+    lema: 'El pueblo unido jamás será vencido', ejeEconomico: 'socialdemocrata', ejeSocial: 'progresista', personalidad: 'defensivo',
+    popularidadBase: 21, influenciaNacionalBase: 17, organizacionBase: 44, credibilidadBase: 27, comunicacionBase: 30,
+    experienciaBase: 58, fondosBase: 170_000, afiliadosBase: 2_800,
   },
   {
-    nombre: 'Partido de Concertación Nacional',
-    siglas: 'PCN',
-    colorPrincipal: '#16a34a',
-    colorSecundario: '#14532d',
-    lema: 'Orden y progreso nacional',
-    ejeEconomico: 'centroeconomico',
-    ejeSocial: 'ultraconservador',
-    personalidad: 'defensivo',     // Partido histórico — sobrevive consolidando
-    popularidadBase: 10,
-    organizacionBase: 35,
-    credibilidadBase: 20,
-    comunicacionBase: 18,
-    experienciaBase: 55,
-    fondosBase: 110_000,
-    afiliadosBase: 900,
+    nombre: 'Gran Alianza por la Unidad Nacional', siglas: 'GANA', colorPrincipal: '#F59E0B', colorSecundario: '#78350F',
+    lema: 'Unidad para el progreso', ejeEconomico: 'liberal', ejeSocial: 'conservador', personalidad: 'oportunista',
+    popularidadBase: 16, influenciaNacionalBase: 16, organizacionBase: 34, credibilidadBase: 24, comunicacionBase: 26,
+    experienciaBase: 36, fondosBase: 140_000, afiliadosBase: 1_200,
   },
   {
-    nombre: 'Nuevas Ideas',
-    siglas: 'NI',
-    colorPrincipal: '#7c3aed',
-    colorSecundario: '#3b0764',
-    lema: 'El Salvador primero',
-    ejeEconomico: 'centroeconomico',
-    ejeSocial: 'conservador',
-    personalidad: 'populista',     // Domina las redes, maximiza popularidad
-    popularidadBase: 42,
-    organizacionBase: 45,
-    credibilidadBase: 40,
-    comunicacionBase: 55,
-    experienciaBase: 10,
-    fondosBase: 280_000,
-    afiliadosBase: 4_000,
+    nombre: 'Partido de Concertación Nacional', siglas: 'PCN', colorPrincipal: '#448DE8', colorSecundario: '#12356B',
+    lema: 'Orden y progreso nacional', ejeEconomico: 'centroeconomico', ejeSocial: 'ultraconservador', personalidad: 'defensivo',
+    popularidadBase: 14, influenciaNacionalBase: 15, organizacionBase: 38, credibilidadBase: 24, comunicacionBase: 20,
+    experienciaBase: 62, fondosBase: 120_000, afiliadosBase: 900,
   },
   {
-    nombre: 'Nuestro Tiempo',
-    siglas: 'NT',
-    colorPrincipal: '#0ea5e9',
-    colorSecundario: '#0c4a6e',
-    lema: 'Transparencia y futuro',
-    ejeEconomico: 'centroeconomico',
-    ejeSocial: 'progresista',
-    personalidad: 'oportunista',   // Partido joven — crece atacando escándalos
-    popularidadBase: 8,
-    organizacionBase: 15,
-    credibilidadBase: 18,
-    comunicacionBase: 22,
-    experienciaBase: 5,
-    fondosBase: 60_000,
-    afiliadosBase: 350,
+    nombre: 'Partido Demócrata Cristiano', siglas: 'PDC', colorPrincipal: '#00A550', colorSecundario: '#064E2A',
+    lema: 'Humanismo y justicia social', ejeEconomico: 'centroeconomico', ejeSocial: 'conservador', personalidad: 'defensivo',
+    popularidadBase: 13, influenciaNacionalBase: 13, organizacionBase: 32, credibilidadBase: 23, comunicacionBase: 18,
+    experienciaBase: 58, fondosBase: 100_000, afiliadosBase: 750,
+  },
+  {
+    nombre: 'VAMOS', siglas: 'VAMOS', colorPrincipal: '#104D8F', colorSecundario: '#9CC8FF',
+    lema: 'Una nueva forma de hacer política', ejeEconomico: 'centroeconomico', ejeSocial: 'progresista', personalidad: 'oportunista',
+    popularidadBase: 12, influenciaNacionalBase: 11, organizacionBase: 22, credibilidadBase: 35, comunicacionBase: 30,
+    experienciaBase: 16, fondosBase: 75_000, afiliadosBase: 450,
+  },
+  {
+    nombre: 'Nuestro Tiempo', siglas: 'NT', colorPrincipal: '#7C3AED', colorSecundario: '#2E1065',
+    lema: 'Transparencia y futuro', ejeEconomico: 'centroeconomico', ejeSocial: 'progresista', personalidad: 'oportunista',
+    popularidadBase: 9, influenciaNacionalBase: 7, organizacionBase: 16, credibilidadBase: 24, comunicacionBase: 24,
+    experienciaBase: 8, fondosBase: 55_000, afiliadosBase: 300,
   },
 ];
 
-// ---------------------------------------------------------------------------
-// GENERACIÓN
-// ---------------------------------------------------------------------------
-
-export function generarPartidosRivales(cantidad: number = 4): Partido[] {
+/** Devuelve el espectro completo por defecto; el orden es estable y reproducible. */
+export function generarPartidosRivales(cantidad: number = PLANTILLAS_RIVALES.length): Partido[] {
   const n = Math.max(1, Math.min(cantidad, PLANTILLAS_RIVALES.length));
-  const fijos = PLANTILLAS_RIVALES.slice(0, 3);                          // ARENA, FMLN, NI siempre
-  const opcionales = [...PLANTILLAS_RIVALES.slice(3)].sort(() => Math.random() - 0.5);
-  const seleccionados = [...fijos, ...opcionales].slice(0, n);
-
-  return seleccionados.map((tpl) => ({
-    id: generarId('partido'),
-    nombre: tpl.nombre,
-    siglas: tpl.siglas,
-    colorPrincipal: tpl.colorPrincipal,
-    colorSecundario: tpl.colorSecundario,
-    lema: tpl.lema,
-    ideologia: construirIdeologia(tpl.ejeEconomico, tpl.ejeSocial),
-    esJugador: false,
-    personalidad: tpl.personalidad,
-
-    popularidad:         Math.max(1, tpl.popularidadBase + _variacion(4)),
-    organizacion:        Math.max(1, tpl.organizacionBase + _variacion(5)),
-    credibilidad:        Math.max(1, tpl.credibilidadBase + _variacion(4)),
-    comunicacion:        Math.max(1, tpl.comunicacionBase + _variacion(5)),
-    experienciaElectoral: Math.max(0, tpl.experienciaBase + _variacion(8)),
-
-    fondos:   tpl.fondosBase + _variacion(25_000),
-    afiliados: tpl.afiliadosBase + _variacion(150),
-
-    accionesEjecutadas:   0,
-    turnosDesdeFundacion: 0,
+  return PLANTILLAS_RIVALES.slice(0, n).map((tpl) => ({
+    id: generarId('partido'), nombre: tpl.nombre, siglas: tpl.siglas,
+    colorPrincipal: tpl.colorPrincipal, colorSecundario: tpl.colorSecundario, lema: tpl.lema,
+    ideologia: construirIdeologia(tpl.ejeEconomico, tpl.ejeSocial), esJugador: false, personalidad: tpl.personalidad,
+    popularidad: tpl.popularidadBase, influenciaNacional: tpl.influenciaNacionalBase,
+    organizacion: tpl.organizacionBase, credibilidad: tpl.credibilidadBase, comunicacion: tpl.comunicacionBase,
+    experienciaElectoral: tpl.experienciaBase, fondos: tpl.fondosBase, afiliados: tpl.afiliadosBase,
+    accionesEjecutadas: 0, turnosDesdeFundacion: 0,
   }));
 }
 
-// ---------------------------------------------------------------------------
-// IA ESTRATÉGICA POR TURNO
-// ---------------------------------------------------------------------------
-
-/**
- * Ejecuta el turno de un partido rival según su personalidad y contexto.
- * @param partido  El partido rival a procesar
- * @param estado   Estado actual para contexto (posición relativa, etc.)
- */
 export function turnoRival(partido: Partido, estado?: EstadoPartida): Partido {
   if (partido.esJugador) return partido;
+  if (partido.fondos < 5_000) return _accionRecaudacion({ ...partido, popularidad: Math.max(0, partido.popularidad - 0.5) });
 
-  // Sin fondos — recaudación de emergencia
-  if (partido.fondos < 5_000) {
-    return {
-      ...partido,
-      popularidad: Math.max(0, partido.popularidad - 0.5),
-      fondos: partido.fondos + 3_000,
-    };
-  }
-
-  const personalidad = partido.personalidad ?? 'oportunista';
   const jugador = estado?.partidos.find((p) => p.esJugador);
-  const posicionRival = estado
-    ? [...estado.partidos].sort((a, b) => b.popularidad - a.popularidad)
-        .findIndex((p) => p.id === partido.id)
-    : 2;
+  const posicion = estado ? [...estado.partidos].sort((a, b) => b.popularidad - a.popularidad).findIndex((p) => p.id === partido.id) : 2;
   const estaDetras = jugador ? partido.popularidad < jugador.popularidad : true;
-  const jugadorEsLider = jugador
-    ? [...(estado?.partidos ?? [])].sort((a, b) => b.popularidad - a.popularidad)[0]?.id === jugador.id
-    : false;
+  const jugadorEsLider = jugador ? [...(estado?.partidos ?? [])].sort((a, b) => b.popularidad - a.popularidad)[0]?.id === jugador.id : false;
 
-  switch (personalidad) {
-    case 'agresivo':
-      return _iaAgresivo(partido, estaDetras, jugadorEsLider);
-
-    case 'defensivo':
-      return _iaDefensivo(partido);
-
-    case 'oportunista':
-      return _iaOportunista(partido, posicionRival, estaDetras);
-
-    case 'populista':
-      return _iaPopulista(partido);
-
-    default:
-      return _accionRecaudacion(partido);
+  switch (partido.personalidad ?? 'oportunista') {
+    case 'agresivo': return _iaAgresivo(partido, estaDetras, jugadorEsLider);
+    case 'defensivo': return _iaDefensivo(partido);
+    case 'oportunista': return _iaOportunista(partido, posicion, estaDetras);
+    case 'populista': return _iaPopulista(partido);
   }
 }
 
-// ---------------------------------------------------------------------------
-// Comportamientos por personalidad
-// ---------------------------------------------------------------------------
-
-/** AGRESIVO: si va atrás, campaña masiva; si lidera, consolida organización */
 function _iaAgresivo(partido: Partido, estaDetras: boolean, jugadorEsLider: boolean): Partido {
-  if (estaDetras && jugadorEsLider) {
-    // Ataque: campaña negativa simulada → sube su popularidad más de lo normal
-    return {
-      ...partido,
-      popularidad: Math.min(100, partido.popularidad + 2.5 + partido.comunicacion * 0.04),
-      credibilidad: Math.max(0, partido.credibilidad - 1), // coste reputacional del ataque
-      fondos: partido.fondos - 8_000,
-      accionesEjecutadas: partido.accionesEjecutadas + 1,
-    };
-  }
-  // Lidera — consolida
-  return {
-    ...partido,
-    organizacion: Math.min(100, partido.organizacion + 2),
-    fondos: partido.fondos - 4_000,
-    accionesEjecutadas: partido.accionesEjecutadas + 1,
-  };
+  if (estaDetras && jugadorEsLider) return { ...partido, popularidad: Math.min(100, partido.popularidad + 2.5 + partido.comunicacion * 0.04), credibilidad: Math.max(0, partido.credibilidad - 1), fondos: partido.fondos - 8_000, accionesEjecutadas: partido.accionesEjecutadas + 1 };
+  return { ...partido, organizacion: Math.min(100, partido.organizacion + 2), fondos: partido.fondos - 4_000, accionesEjecutadas: partido.accionesEjecutadas + 1 };
 }
 
-/** DEFENSIVO: alterna entre organización interna y recaudación de fondos */
 function _iaDefensivo(partido: Partido): Partido {
-  const fondosBajos = partido.fondos < 80_000;
-  if (fondosBajos) {
-    return _accionRecaudacion(partido);
-  }
-  return {
-    ...partido,
-    organizacion:  Math.min(100, partido.organizacion + 2),
-    credibilidad:  Math.min(100, partido.credibilidad + 1),
-    afiliados:     partido.afiliados + Math.floor(5 + partido.organizacion * 0.08),
-    fondos:        partido.fondos - 3_000,
-    accionesEjecutadas: partido.accionesEjecutadas + 1,
-  };
+  if (partido.fondos < 80_000) return _accionRecaudacion(partido);
+  return { ...partido, organizacion: Math.min(100, partido.organizacion + 2), credibilidad: Math.min(100, partido.credibilidad + 1), afiliados: partido.afiliados + Math.floor(5 + partido.organizacion * 0.08), fondos: partido.fondos - 3_000, accionesEjecutadas: partido.accionesEjecutadas + 1 };
 }
 
-/** OPORTUNISTA: si va 1°–2° consolida; si va 3°+ ataca; si fondos bajos recauda */
 function _iaOportunista(partido: Partido, posicion: number, estaDetras: boolean): Partido {
   if (partido.fondos < 40_000) return _accionRecaudacion(partido);
-
-  if (posicion <= 1) {
-    // Líder o segundo — mantener posición con comunicación
-    return {
-      ...partido,
-      comunicacion: Math.min(100, partido.comunicacion + 1.5),
-      popularidad:  Math.min(100, partido.popularidad + 1),
-      fondos:       partido.fondos - 5_000,
-      accionesEjecutadas: partido.accionesEjecutadas + 1,
-    };
-  }
-
-  if (estaDetras) {
-    // Va atrás — push de popularidad apostando todo
-    return {
-      ...partido,
-      popularidad:  Math.min(100, partido.popularidad + 2 + partido.comunicacion * 0.03),
-      fondos:       partido.fondos - 7_000,
-      accionesEjecutadas: partido.accionesEjecutadas + 1,
-    };
-  }
-
+  if (posicion <= 1) return { ...partido, comunicacion: Math.min(100, partido.comunicacion + 1.5), popularidad: Math.min(100, partido.popularidad + 1), fondos: partido.fondos - 5_000, accionesEjecutadas: partido.accionesEjecutadas + 1 };
+  if (estaDetras) return { ...partido, popularidad: Math.min(100, partido.popularidad + 2 + partido.comunicacion * 0.03), fondos: partido.fondos - 7_000, accionesEjecutadas: partido.accionesEjecutadas + 1 };
   return _accionRecaudacion(partido);
 }
 
-/** POPULISTA: siempre maximiza popularidad; ignora organización */
 function _iaPopulista(partido: Partido): Partido {
   if (partido.fondos < 20_000) return _accionRecaudacion(partido);
-
-  return {
-    ...partido,
-    popularidad:  Math.min(100, partido.popularidad + 3 + partido.comunicacion * 0.05),
-    comunicacion: Math.min(100, partido.comunicacion + 1),
-    fondos:       partido.fondos - 10_000, // gasta más que el resto
-    accionesEjecutadas: partido.accionesEjecutadas + 1,
-  };
+  return { ...partido, popularidad: Math.min(100, partido.popularidad + 3 + partido.comunicacion * 0.05), comunicacion: Math.min(100, partido.comunicacion + 1), fondos: partido.fondos - 10_000, accionesEjecutadas: partido.accionesEjecutadas + 1 };
 }
 
-// ---------------------------------------------------------------------------
-// Acciones atómicas reutilizables
-// ---------------------------------------------------------------------------
-
-function _accionRecaudacion(p: Partido): Partido {
-  return {
-    ...p,
-    fondos: p.fondos + 15_000 + p.credibilidad * 50,
-    accionesEjecutadas: p.accionesEjecutadas + 1,
-  };
-}
-
-// ---------------------------------------------------------------------------
-// Helper
-// ---------------------------------------------------------------------------
-
-function _variacion(max: number): number {
-  return Math.floor((Math.random() * 2 - 1) * max);
+function _accionRecaudacion(partido: Partido): Partido {
+  return { ...partido, fondos: partido.fondos + 15_000 + partido.credibilidad * 50, accionesEjecutadas: partido.accionesEjecutadas + 1 };
 }

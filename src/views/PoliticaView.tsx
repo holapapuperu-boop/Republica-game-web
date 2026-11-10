@@ -351,6 +351,7 @@ function TarjetaRival({ partido }: { partido: Partido }) {
 
       <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 mt-2">
         <BarraMini etiqueta="Popularidad" valor={partido.popularidad} color={partido.colorPrincipal} />
+        <BarraMini etiqueta="Influencia" valor={partido.influenciaNacional ?? 0} color={partido.colorPrincipal} />
         <BarraMini etiqueta="Organización" valor={partido.organizacion} color="#22c55e" />
         <BarraMini etiqueta="Credibilidad" valor={partido.credibilidad} color="#f59e0b" />
         <BarraMini etiqueta="Comunicación" valor={partido.comunicacion} color="#8b5cf6" />
